@@ -32,10 +32,13 @@
         .price { color: var(--navy); font-size: 17px; font-weight: 800; }
         button, .button { border: 0; border-radius: 9px; padding: 11px 14px; background: var(--navy); color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; text-align: center; }
         button:hover, .button:hover { background: #0b2b40; }
+        .contact-intro { margin: -8px 0 22px; color: var(--muted); line-height: 1.6; font-size: 14px; }
         .details { display: grid; gap: 16px; }
-        .detail { display: flex; gap: 12px; align-items: start; }
+        .detail { display: grid; grid-template-columns: 30px 1fr; gap: 12px; align-items: start; }
+        .detail-icon { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; background: #eaf2f7; color: var(--navy); font-size: 15px; font-weight: 800; }
         .detail strong { display: block; margin-bottom: 3px; color: var(--navy); }
         .detail span { color: var(--muted); font-size: 14px; line-height: 1.5; }
+        .delivery-note { margin-top: 20px; padding: 14px; border: 1px solid #cfe8dc; border-radius: 10px; background: #f1faf5; color: #176342; font-size: 13px; line-height: 1.5; }
         .empty { color: var(--muted); line-height: 1.6; }
         dialog { width: min(460px, calc(100% - 32px)); border: 0; border-radius: 14px; padding: 0; box-shadow: 0 20px 70px rgba(15, 42, 60, .25); }
         dialog::backdrop { background: rgba(10, 31, 45, .55); }
@@ -60,7 +63,7 @@
         </section>
         <div class="layout">
             <section class="panel"><h2>Products and services</h2><div class="product-grid" id="products"></div></section>
-            <aside class="panel"><h2>Contact this business</h2><div class="details"><div class="detail"><span>Location</span><div><strong id="businessLocation">Available locally</strong><span>Contact the business to confirm delivery or pickup.</span></div></div><div class="detail"><span>Phone</span><div><strong id="businessPhone">Contact available after order</strong><span>Use the order form and the business will respond.</span></div></div></div><a class="button" id="callButton" href="#" style="display:block;margin-top:22px">Contact business</a></aside>
+            <aside class="panel"><h2>Contact this business</h2><p class="contact-intro">Ask about availability, delivery, pickup, or a custom order. The business will receive your request and respond directly.</p><div class="details"><div class="detail"><span class="detail-icon">&#9678;</span><div><strong id="businessLocation">Available locally</strong><span>Confirm the exact delivery area or pickup point before ordering.</span></div></div><div class="detail"><span class="detail-icon">&#9742;</span><div><strong id="businessPhone">Contact after request</strong><span id="businessPhoneNote">Your phone number is shared with the business through the order request.</span></div></div></div><div class="delivery-note">Delivery and pickup options depend on the business location and the item you select.</div><button class="button" id="callButton" type="button" style="display:block;width:100%;margin-top:18px">Send an order request</button></aside>
         </div>
     </main>
     <dialog id="orderDialog"><form class="dialog-body" method="dialog" id="orderForm"><h2>Request an order</h2><p id="orderProduct"></p><label for="customerName">Your name</label><input id="customerName" required /><label for="customerPhone">Phone number</label><input id="customerPhone" type="tel" required /><label for="customerNote">Note</label><textarea id="customerNote" placeholder="Quantity, delivery address, or any questions"></textarea><div class="dialog-actions"><button type="button" class="secondary" onclick="orderDialog.close()">Cancel</button><button type="submit">Send request</button></div><div class="notice" id="orderNotice" hidden>Order request saved. The business can now contact you.</div></form></dialog>
@@ -84,10 +87,13 @@
             document.getElementById('businessDescription').textContent = business.description || `Shop products and services from ${business.businessName || business.name}.`;
             document.getElementById('businessRating').textContent = Number(business.rating || 4.8).toFixed(1);
             document.getElementById('businessLocation').textContent = business.location?.city || business.country || 'Available locally';
-            document.getElementById('businessPhone').textContent = business.phoneNumber || 'Contact available after order';
+            const contactButton = document.getElementById('callButton');
+            document.getElementById('businessPhone').textContent = business.phoneNumber || 'Contact after request';
+            document.getElementById('businessPhoneNote').textContent = business.phoneNumber ? 'Call the business directly or send an order request.' : 'Your phone number is shared with the business through the order request.';
             const items = fallbackProducts[business.category] || [['Featured product', 'Products and services', 'Contact for price', 'other.jpg'], ['Custom request', 'Made to order', 'Contact for price', 'other.jpg']];
             products.innerHTML = items.map(item => `<article class="product"><img class="product-image" src="assets/products/${item[3]}" alt="${item[0]}" loading="lazy" /><h3>${item[0]}</h3><p>${item[1]}</p><span class="price">${item[2]}</span><button type="button" onclick="openOrder('${item[0].replace(/'/g, "\\'")}')">Order from this business</button></article>`).join('');
-            document.getElementById('callButton').href = business.phoneNumber ? `tel:${business.phoneNumber}` : '#orderDialog';
+            contactButton.textContent = business.phoneNumber ? 'Call or send a request' : 'Send an order request';
+            contactButton.onclick = () => business.phoneNumber ? window.location.href = `tel:${business.phoneNumber}` : openOrder('Contact request');
         }
         async function loadBusiness() {
             if (!params.get('id')) { renderBusiness(); return; }
