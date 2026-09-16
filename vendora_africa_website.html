@@ -1,0 +1,346 @@
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font-sans);color:var(--color-text-primary);background:var(--color-background-tertiary)}
+.nav{background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100}
+.logo{font-size:22px;font-weight:500;color:#1B4F72}
+.logo span{color:#2E86C1}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{text-decoration:none;color:var(--color-text-secondary);font-size:14px}
+.nav-links a:hover{color:var(--color-text-primary)}
+.btn{display:inline-block;padding:8px 20px;border-radius:var(--border-radius-md);font-size:14px;cursor:pointer;border:none;font-family:var(--font-sans);text-align:center}
+.btn-primary{background:#1B4F72;color:#fff}
+.btn-primary:hover{background:#154060}
+.btn-outline{background:transparent;border:0.5px solid #1B4F72;color:#1B4F72}
+.btn-outline:hover{background:#E6F1FB}
+.btn-white{background:#fff;color:#1B4F72;font-weight:500}
+.btn-white:hover{background:#f0f8ff}
+.hero{background:linear-gradient(135deg,#1B4F72 0%,#2E86C1 100%);padding:80px 2rem;text-align:center;color:#fff}
+.hero h1{font-size:48px;font-weight:500;margin-bottom:1rem;line-height:1.2}
+.hero h1 span{color:#85B7EB}
+.hero p{font-size:18px;color:#B5D4F4;max-width:600px;margin:0 auto 2rem;line-height:1.7}
+.hero-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+.stats{background:var(--color-background-primary);padding:40px 2rem;display:flex;justify-content:center;gap:4rem;flex-wrap:wrap;border-bottom:0.5px solid var(--color-border-tertiary)}
+.stat{text-align:center}
+.stat-num{font-size:32px;font-weight:500;color:#1B4F72}
+.stat-label{font-size:13px;color:var(--color-text-secondary);margin-top:4px}
+.section{padding:64px 2rem;max-width:1100px;margin:0 auto}
+.section-header{max-width:760px;margin:0 auto 36px;text-align:center;display:flex;flex-direction:column;align-items:center}
+.section-title{font-size:clamp(2rem,3vw,2.8rem);font-weight:600;line-height:1.2;letter-spacing:-0.03em;text-align:center;margin:0 0 12px;color:var(--color-text-primary)}
+.section-sub{font-size:15px;color:var(--color-text-secondary);text-align:center;margin:0 auto 32px;line-height:1.7;max-width:650px}
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+.feature-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:28px}
+.feature-icon{width:44px;height:44px;border-radius:var(--border-radius-md);background:#E6F1FB;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.feature-icon svg{width:22px;height:22px;stroke:#1B4F72;fill:none;stroke-width:2}
+.feature-card h3{font-size:16px;font-weight:500;margin-bottom:8px}
+.feature-card p{font-size:14px;color:var(--color-text-secondary);line-height:1.7}
+.categories{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:48px}
+.cat-pill{padding:8px 20px;border-radius:20px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);font-size:13px;cursor:pointer;color:var(--color-text-secondary)}
+.cat-pill.active,.cat-pill:hover{background:#E6F1FB;border-color:#2E86C1;color:#1B4F72}
+.businesses-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
+.biz-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;cursor:pointer}
+.biz-card:hover{border-color:#2E86C1}
+.biz-header{height:80px;display:flex;align-items:center;justify-content:center;font-size:28px}
+.biz-body{padding:16px}
+.biz-name{font-size:15px;font-weight:500;margin-bottom:4px}
+.biz-type{font-size:12px;color:var(--color-text-secondary);margin-bottom:10px}
+.biz-meta{display:flex;align-items:center;justify-content:space-between}
+.biz-rating{font-size:12px;color:#BA7517}
+.biz-badge{font-size:11px;padding:3px 10px;border-radius:10px;background:#E6F1FB;color:#185FA5}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;max-width:900px;margin:0 auto}
+.plan-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:32px;text-align:center;position:relative}
+.plan-card.featured{border:2px solid #2E86C1}
+.plan-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:#2E86C1;color:#fff;font-size:12px;padding:4px 16px;border-radius:10px}
+.plan-name{font-size:18px;font-weight:500;margin-bottom:8px}
+.plan-price{font-size:36px;font-weight:500;color:#1B4F72;margin-bottom:4px}
+.plan-period{font-size:13px;color:var(--color-text-secondary);margin-bottom:24px}
+.plan-features{list-style:none;text-align:left;margin-bottom:28px}
+.plan-features li{font-size:13px;color:var(--color-text-secondary);padding:6px 0;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:8px}
+.plan-features li:last-child{border-bottom:none}
+.check{width:14px;height:14px;background:#EAF3DE;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.check svg{width:9px;height:9px;stroke:#3B6D11;fill:none;stroke-width:3}
+.cross{width:14px;height:14px;background:#FCEBEB;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.cross svg{width:9px;height:9px;stroke:#A32D2D;fill:none;stroke-width:3}
+.cta{background:#1B4F72;padding:72px 2rem;text-align:center;color:#fff}
+.cta h2{font-size:32px;font-weight:500;margin-bottom:16px}
+.cta p{font-size:16px;color:#B5D4F4;margin-bottom:32px;max-width:500px;margin-left:auto;margin-right:auto;line-height:1.7}
+.register-form{background:var(--color-background-primary);border-radius:var(--border-radius-lg);padding:40px;max-width:480px;margin:0 auto}
+.register-form h3{font-size:20px;font-weight:500;margin-bottom:24px;color:var(--color-text-primary)}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:13px;color:var(--color-text-secondary);margin-bottom:6px}
+.form-group input,.form-group select{width:100%;padding:10px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);font-size:14px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.free-badge{display:inline-block;background:#EAF3DE;color:#3B6D11;font-size:12px;padding:3px 12px;border-radius:10px;margin-bottom:16px}
+.footer{background:var(--color-background-primary);border-top:0.5px solid var(--color-border-tertiary);padding:48px 2rem 24px}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3rem;max-width:1100px;margin:0 auto 40px}
+.footer-brand p{font-size:13px;color:var(--color-text-secondary);margin-top:12px;line-height:1.7;max-width:220px}
+.footer-col h4{font-size:13px;font-weight:500;margin-bottom:16px}
+.footer-col ul{list-style:none}
+.footer-col li{font-size:13px;color:var(--color-text-secondary);margin-bottom:10px;cursor:pointer}
+.footer-col li:hover{color:var(--color-text-primary)}
+.footer-bottom{border-top:0.5px solid var(--color-border-tertiary);padding-top:24px;text-align:center;font-size:12px;color:var(--color-text-secondary);max-width:1100px;margin:0 auto}
+.tab-btns{display:flex;gap:8px;justify-content:center;margin-bottom:40px}
+.tab-btn{padding:8px 24px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);color:var(--color-text-secondary);font-size:14px;cursor:pointer;font-family:var(--font-sans)}
+.tab-btn.active{background:#1B4F72;color:#fff;border-color:#1B4F72}
+.how-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;text-align:center}
+.step-num{width:48px;height:48px;border-radius:50%;background:#E6F1FB;color:#1B4F72;font-size:20px;font-weight:500;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.step h4{font-size:15px;font-weight:500;margin-bottom:8px}
+.step p{font-size:13px;color:var(--color-text-secondary);line-height:1.7}
+.arrow{color:#B5D4F4;font-size:24px;display:flex;align-items:center;padding-top:16px}
+</style>
+
+<h2 class="sr-only">VENDORA AFRICA — Africa-wide hybrid business marketplace website prototype</h2>
+
+<nav class="nav">
+  <div class="logo">VENDORA <span>AFRICA</span></div>
+  <ul class="nav-links">
+    <li><a href="browse.html">Browse businesses</a></li>
+    <li><a href="#how-it-works">How it works</a></li>
+    <li><a href="pricing.html">Pricing</a></li>
+    <li><a href="#about">About</a></li>
+  </ul>
+  <div style="display:flex;gap:10px">
+    <a class="btn btn-outline" href="signin.html">Sign in</a>
+    <a class="btn btn-primary" href="register.html">Register free ↗</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <p style="font-size:12px;letter-spacing:1px;color:#85B7EB;margin-bottom:16px;text-transform:uppercase">Africa's business marketplace</p>
+  <h1>Every business.<br><span>Every corner.</span><br>One platform.</h1>
+  <p>Connect your business with millions of customers across Africa. Free to register. Built for small businesses.</p>
+  <div class="hero-btns">
+    <a class="btn btn-white" href="register.html">List your business free ↗</a>
+    <a class="btn btn-outline" href="browse.html" style="border-color:#85B7EB;color:#fff">Browse businesses</a>
+  </div>
+</section>
+
+<div class="stats">
+  <div class="stat"><div class="stat-num">50,000+</div><div class="stat-label">Businesses by Year 3</div></div>
+  <div class="stat"><div class="stat-num">54</div><div class="stat-label">African countries targeted</div></div>
+  <div class="stat"><div class="stat-num">Free</div><div class="stat-label">To register</div></div>
+  <div class="stat"><div class="stat-num">GHS 30</div><div class="stat-label">Starting monthly plan</div></div>
+</div>
+
+<div style="background:var(--color-background-secondary);padding:64px 2rem">
+<div class="section" style="padding:0">
+  <div class="section-header">
+    <h2 class="section-title">Browse local businesses</h2>
+    <p class="section-sub">Discover phones, cosmetics, fashion, food, electronics and more — from verified local businesses near you.</p>
+  </div>
+  <div class="categories">
+    <div class="cat-pill active" onclick="filterBiz(this,'all')">All categories</div>
+    <div class="cat-pill" onclick="filterBiz(this,'phones')">Phones & electronics</div>
+    <div class="cat-pill" onclick="filterBiz(this,'cosmetics')">Cosmetics & beauty</div>
+    <div class="cat-pill" onclick="filterBiz(this,'fashion')">Fashion & clothing</div>
+    <div class="cat-pill" onclick="filterBiz(this,'food')">Food & grocery</div>
+    <div class="cat-pill" onclick="filterBiz(this,'hardware')">Hardware</div>
+  </div>
+  <div class="businesses-grid" id="bizGrid"></div>
+</div>
+</div>
+
+<div id="how-it-works" style="background:var(--color-background-primary);padding:64px 2rem">
+<div class="section" style="padding:0">
+  <p class="section-title">How VENDORA AFRICA works</p>
+  <p class="section-sub">Getting started takes less than 5 minutes.</p>
+  <div class="tab-btns">
+    <button class="tab-btn active" onclick="switchTab(this,'business')">For businesses</button>
+    <button class="tab-btn" onclick="switchTab(this,'customer')">For customers</button>
+  </div>
+  <div id="tab-business" class="how-steps">
+    <div class="step"><div class="step-num">1</div><h4>Register free</h4><p>Sign up and create your business profile in minutes. No cost to join.</p></div>
+    <div class="step"><div class="step-num">2</div><h4>Choose a plan</h4><p>Pick Basic, Standard, or Premium based on your business size and needs.</p></div>
+    <div class="step"><div class="step-num">3</div><h4>List your products</h4><p>Upload your products, set your prices, and go live on the platform.</p></div>
+    <div class="step"><div class="step-num">4</div><h4>Grow your sales</h4><p>Reach customers across Africa online and through our physical hubs.</p></div>
+  </div>
+  <div id="tab-customer" class="how-steps" style="display:none">
+    <div class="step"><div class="step-num">1</div><h4>Search & discover</h4><p>Find local businesses selling phones, cosmetics, food, and more near you.</p></div>
+    <div class="step"><div class="step-num">2</div><h4>Browse products</h4><p>View products, prices, and reviews from verified local businesses.</p></div>
+    <div class="step"><div class="step-num">3</div><h4>Order or visit</h4><p>Buy online with Mobile Money or visit the business in person.</p></div>
+    <div class="step"><div class="step-num">4</div><h4>Track delivery</h4><p>Track your order in real time through our delivery partners.</p></div>
+  </div>
+</div>
+</div>
+
+<div style="background:var(--color-background-secondary);padding:64px 2rem">
+<div class="section" style="padding:0">
+  <p class="section-title">Simple, affordable plans</p>
+  <p class="section-sub">Register free. Then choose the plan that fits your business. Cancel anytime.</p>
+  <div class="plans">
+    <div class="plan-card">
+      <div class="plan-name">Basic</div>
+      <div class="plan-price">GHS 30</div>
+      <div class="plan-period">per month</div>
+      <ul class="plan-features">
+        <li><span class="check"><svg viewBox="0 0 10 10"><polyline points="2,5 4,8 8,2"/></svg></span>Business profile & storefront</li>
+        <li><span class="check"><svg viewBox="0 0 10 10"><polyline points="2,5 4,8 8,2"/></svg></span>Up to 10 product listings</li>
+        <li><span class="check"><svg viewBox="0 0 10 10"><polyline points="2,5 4,8 8,2"/></svg></span>Mobile Money integration</li>
+        <li><span class="check"><svg viewBox="0 0 10 10"><polyline points="2,5 4,8 8,2"/></svg></span>Customer reviews & ratings</li>
+        <li><span class="cross"><svg viewBox="0 0 10 10"><line x1="2" y1="2" x2="8" y2="8"/><line x1="8" y1="2" x2="2" y2="8"/></svg></span>Inventory management</li>
+        <li><span class="cross"><svg viewBox="0 0 10 10"><line x1="2" y1="2" x2="8" y2="8"/><line x1="8" y1="2" x2="2" y2="8"/></svg></span>Sales analytics</li>
+      </ul>
+      <a class="btn btn-outline" href="pricing.html" style="width:100%">Get started ↗</a>
+    </div>
+    <div class="plan-card featured">
+      <div class="plan-badge">Most popular</div>
+      <div class="plan-name">Standard</div>
+      <div class="plan-price">GHS 70</div>
+      <div class="plan-period">per month</div>
+      <ul class="plan-features">
+        <li><span class="check"><svg viewBox="0 0 10 10"><polyline points="2,5 4,8 8,2"/></svg></span>Everything in Basic</li>
+        <li><span class="check"><svg viewBox="0 0 10 10"><polyline points="2,5 4,8 8,2"/></svg></span>Up to 50 product listings</li>
+        <li><span class="check"><svg viewBox="0 0 10 10"><polyline points="2,5 4,8 8,2"/></svg></span>Inventory management tools</li>
+        <li><span class="check"><svg viewBox="0 0 10 10"><polyline points="2,5 4,8 8,2"/></svg></span>Priority search ranking</li>
+        <li><span class="check"><svg viewBox="0 0 10 10"><polyline points="2,5 4,8 8,2"/></svg></span>Sales analytics & reports</li>
+        <li><span class="cross"><svg viewBox="0 0 10 10"><line x1="2" y1="2" x2="8" y2="8"/><line x1="8" y1="2" x2="2" y2="8"/></svg></span>Featured homepage placement</li>
+      </ul>
+      <a class="btn btn-primary" href="pricing.html" style="width:100%">Get started ↗</a>
+    </div>
+    <div class="plan-card">
+      <div class="plan-name">Premium</div>
+      <div class="plan-price">GHS 150</div>
+      <div class="plan-period">per month</div>
+      <ul class="plan-features">
+        <li><span class="check"><svg viewBox="0 0 10 10"><polyline points="2,5 4,8 8,2"/></svg></span>Everything in Standard</li>
+        <li><span class="check"><svg viewBox="0 0 10 10"><polyline points="2,5 4,8 8,2"/></svg></span>Unlimited product listings</li>
+        <li><span class="check"><svg viewBox="0 0 10 10"><polyline points="2,5 4,8 8,2"/></svg></span>Featured homepage placement</li>
+        <li><span class="check"><svg viewBox="0 0 10 10"><polyline points="2,5 4,8 8,2"/></svg></span>Advertising & promo tools</li>
+        <li><span class="check"><svg viewBox="0 0 10 10"><polyline points="2,5 4,8 8,2"/></svg></span>Delivery partnership access</li>
+        <li><span class="check"><svg viewBox="0 0 10 10"><polyline points="2,5 4,8 8,2"/></svg></span>Dedicated customer support</li>
+      </ul>
+      <a class="btn btn-outline" href="pricing.html" style="width:100%">Get started ↗</a>
+    </div>
+  </div>
+</div>
+</div>
+
+<div id="about" style="background:var(--color-background-primary);padding:64px 2rem">
+<div class="section" style="padding:0">
+  <p class="section-title">Why businesses choose VENDORA AFRICA</p>
+  <p class="section-sub">Built specifically for African small businesses — not a one-size-fits-all global platform.</p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+      <h3>Free to register</h3>
+      <p>No upfront cost. Create your business profile and storefront at zero cost. Pay only when you choose a plan.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
+      <h3>Mobile Money payments</h3>
+      <p>Accept payments via MTN MoMo, Vodafone Cash, Orange Money, and M-Pesa — built right into the platform.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+      <h3>Online + physical hubs</h3>
+      <p>Sell online and through our physical hubs in major African cities. Reach customers wherever they are.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+      <h3>Sales analytics</h3>
+      <p>Track your sales, monitor customer behaviour, and grow smarter with built-in analytics tools.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
+      <h3>Africa-wide reach</h3>
+      <p>Your business becomes visible to customers across all 54 African countries through one platform.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg></div>
+      <h3>Inventory management</h3>
+      <p>Manage your stock directly from your dashboard. Never lose track of what you have in store.</p>
+    </div>
+  </div>
+</div>
+</div>
+
+<section class="cta">
+  <h2>Ready to grow your business?</h2>
+  <p>Join thousands of businesses across Africa on VENDORA AFRICA. Registration is completely free.</p>
+  <div class="register-form">
+    <div class="free-badge">Free registration</div>
+    <h3>Register your business</h3>
+    <div class="form-row">
+      <div class="form-group"><label>First name</label><input type="text" placeholder="Al-amin"/></div>
+      <div class="form-group"><label>Last name</label><input type="text" placeholder="Mohammed"/></div>
+    </div>
+    <div class="form-group"><label>Business name</label><input type="text" placeholder="e.g. NAFATUS ALU WORKS"/></div>
+    <div class="form-group"><label>Phone number</label><input type="text" placeholder="+233 XX XXX XXXX"/></div>
+    <div class="form-group"><label>Business category</label>
+      <select>
+        <option>Select a category</option>
+        <option>Phones & electronics</option>
+        <option>Cosmetics & beauty</option>
+        <option>Fashion & clothing</option>
+        <option>Food & grocery</option>
+        <option>Hardware & building</option>
+        <option>Aluminum & glass works</option>
+        <option>Education</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Country</label>
+      <select>
+        <option>Ghana</option>
+        <option>Nigeria</option>
+        <option>Kenya</option>
+        <option>Senegal</option>
+        <option>Ivory Coast</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <a class="btn btn-primary" href="register.html" style="width:100%;padding:12px;font-size:15px;margin-top:8px">Register my business free ↗</a>
+    <p style="font-size:12px;color:var(--color-text-secondary);text-align:center;margin-top:12px">No credit card required. Choose your plan after registration.</p>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="logo">VENDORA <span>AFRICA</span></div>
+      <p>Africa's hybrid business marketplace. Connecting small businesses with customers across the continent.</p>
+    </div>
+    <div class="footer-col"><h4>Platform</h4><ul><li>Browse businesses</li><li>List your business</li><li>Pricing plans</li><li>Physical hubs</li></ul></div>
+    <div class="footer-col"><h4>Company</h4><ul><li>About us</li><li>How it works</li><li>Careers</li><li>Contact us</li></ul></div>
+    <div class="footer-col"><h4>Support</h4><ul><li>Help centre</li><li>Business guide</li><li>Terms of use</li><li>Privacy policy</li></ul></div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 VENDORA AFRICA. All rights reserved. Built for Africa, by Africa.</p>
+  </div>
+</footer>
+
+<script>
+const businesses=[
+  {name:"TechZone Ghana",type:"Phones & electronics",cat:"phones",rating:"4.8",color:"#E6F1FB",emoji:"📱",badge:"Premium"},
+  {name:"Glow Beauty Hub",type:"Cosmetics & beauty",cat:"cosmetics",rating:"4.9",color:"#FBEAF0",emoji:"💄",badge:"Standard"},
+  {name:"AfriStyle Fashion",type:"Fashion & clothing",cat:"fashion",rating:"4.7",color:"#EAF3DE",emoji:"👗",badge:"Premium"},
+  {name:"Mama's Kitchen",type:"Food & grocery",cat:"food",rating:"5.0",color:"#FAEEDA",emoji:"🍱",badge:"Basic"},
+  {name:"BuildRight Hardware",type:"Hardware & building",cat:"hardware",rating:"4.6",color:"#F1EFE8",emoji:"🔧",badge:"Standard"},
+  {name:"CosmoGlow NG",type:"Cosmetics & beauty",cat:"cosmetics",rating:"4.8",color:"#FBEAF0",emoji:"✨",badge:"Premium"},
+  {name:"PhoneKing Accra",type:"Phones & electronics",cat:"phones",rating:"4.5",color:"#E6F1FB",emoji:"📲",badge:"Basic"},
+  {name:"FreshMart Kenya",type:"Food & grocery",cat:"food",rating:"4.9",color:"#FAEEDA",emoji:"🛒",badge:"Standard"},
+];
+function renderBiz(list){
+  const g=document.getElementById('bizGrid');
+  g.innerHTML=list.map(b=>`<div class="biz-card">
+    <div class="biz-header" style="background:${b.color}">${b.emoji}</div>
+    <div class="biz-body">
+      <div class="biz-name">${b.name}</div>
+      <div class="biz-type">${b.type}</div>
+      <div class="biz-meta"><span class="biz-rating">★ ${b.rating}</span><span class="biz-badge">${b.badge}</span></div>
+    </div>
+  </div>`).join('');
+}
+function filterBiz(el,cat){
+  document.querySelectorAll('.cat-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  renderBiz(cat==='all'?businesses:businesses.filter(b=>b.cat===cat));
+}
+function switchTab(el,tab){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-business').style.display=tab==='business'?'grid':'none';
+  document.getElementById('tab-customer').style.display=tab==='customer'?'grid':'none';
+}
+renderBiz(businesses);
+</script>

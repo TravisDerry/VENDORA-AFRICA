@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register Your Business | VENDORA AFRICA</title>
+    <style>
+        :root {
+            --color-primary: #1B4F72;
+            --color-primary-strong: #154060;
+            --color-secondary: #2E86C1;
+            --color-accent: #E6F1FB;
+            --color-text: #1E2A39;
+            --color-text-soft: #5D6B7A;
+            --color-white: #ffffff;
+            --color-border: #D9E3EB;
+            --color-bg: #f4f8fb;
+            --color-success-bg: #EAF3DE;
+            --color-success: #3B6D11;
+            --radius: 18px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: linear-gradient(180deg, #f4f8fb 0%, #edf4fb 100%);
+            color: var(--color-text);
+        }
+
+        a { text-decoration: none; }
+
+        .nav {
+            background: var(--color-white);
+            border-bottom: 1px solid var(--color-border);
+            padding: 0 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            color: var(--color-primary);
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .logo span { color: var(--color-secondary); }
+
+        .nav-links {
+            display: flex;
+            gap: 22px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links a {
+            color: var(--color-text-soft);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .nav-links a:hover { color: var(--color-primary); }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: var(--color-white);
+        }
+
+        .btn-primary:hover { background: var(--color-primary-strong); }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .btn-outline:hover { background: var(--color-accent); }
+
+        .page {
+            min-height: calc(100vh - 70px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 20px;
+        }
+
+        .page-inner {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .intro-panel {
+            text-align: center;
+            margin-bottom: 28px;
+            padding: 12px 18px 0;
+        }
+
+        .cta-badge {
+            display: inline-block;
+            background: var(--color-success-bg);
+            color: var(--color-success);
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 18px;
+        }
+
+        .intro-panel h2 {
+            margin: 0 0 12px;
+            font-size: clamp(2.1rem, 4vw, 3.2rem);
+            color: var(--color-primary);
+            line-height: 1.15;
+        }
+
+        .intro-panel p {
+            max-width: 620px;
+            margin: 0 auto;
+            line-height: 1.7;
+            font-size: 17px;
+            color: var(--color-text-soft);
+        }
+
+        .card {
+            width: 100%;
+            max-width: 620px;
+            background: var(--color-white);
+            border: 1px solid var(--color-border);
+            border-radius: 28px;
+            box-shadow: 0 18px 45px rgba(27, 79, 114, 0.08);
+            padding: 32px 28px;
+            margin: 0 auto;
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--color-success-bg);
+            color: var(--color-success);
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 18px;
+        }
+
+        h1 {
+            margin: 0 0 10px;
+            font-size: clamp(2rem, 3vw, 2.7rem);
+            color: var(--color-primary);
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            margin: 0 0 24px;
+            color: var(--color-text-soft);
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-soft);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 13px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--color-border);
+            background: var(--color-white);
+            font-size: 15px;
+            color: var(--color-text);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--color-secondary);
+            box-shadow: 0 0 0 4px rgba(46, 134, 193, 0.12);
+        }
+
+        .submit-btn {
+            width: 100%;
+            margin-top: 8px;
+            padding: 15px 18px;
+            font-size: 16px;
+        }
+
+        .footer-note {
+            margin-top: 16px;
+            text-align: center;
+            color: var(--color-text-soft);
+            font-size: 12px;
+        }
+
+        @media (max-width: 640px) {
+            .nav-links { display: none; }
+            .nav { padding: 0 18px; }
+            .form-row { grid-template-columns: 1fr; }
+            .card { padding: 24px 18px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="index.html" class="logo">VENDORA <span>AFRICA</span></a>
+            <ul class="nav-links">
+                <li><a href="index.html#browse">Browse businesses</a></li>
+                <li><a href="index.html#how-it-works">How it works</a></li>
+                <li><a href="index.html#pricing">Pricing</a></li>
+                <li><a href="index.html#about">About</a></li>
+            </ul>
+            <div class="nav-actions">
+                <a class="btn btn-outline" href="index.html">Home</a>
+                <a class="btn btn-primary" href="register.html">Register free</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="page">
+        <div class="page-inner">
+            <div class="intro-panel">
+                <div class="cta-badge">Free registration</div>
+                <h2>Ready to grow your business?</h2>
+                <p>Join thousands of businesses across Africa on VENDORA AFRICA. Registration is completely free.</p>
+            </div>
+
+            <div class="card">
+                <div class="badge">Free registration</div>
+                <h1>Start your business listing</h1>
+                <p class="subtitle">Create your profile and get discovered by customers across Africa.</p>
+
+                <form id="registrationForm" onsubmit="handleRegistration(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">First name</label>
+                        <input type="text" id="firstName" name="firstName" placeholder="Al-amin" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last name</label>
+                        <input type="text" id="lastName" name="lastName" placeholder="Mohammed" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="businessName">Business name</label>
+                    <input type="text" id="businessName" name="businessName" placeholder="e.g. NAFATUS ALU WORKS" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phoneNumber">Phone number</label>
+                    <input type="tel" id="phoneNumber" name="phoneNumber" placeholder="+233 XX XXX XXXX" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email address</label>
+                    <input type="email" id="email" name="email" placeholder="you@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="businessCategory">Business category</label>
+                    <select id="businessCategory" name="businessCategory" required>
+                        <option value="">Select a category</option>
+                        <option value="phones">Phones & electronics</option>
+                        <option value="cosmetics">Cosmetics & beauty</option>
+                        <option value="fashion">Fashion & clothing</option>
+                        <option value="food">Food & grocery</option>
+                        <option value="hardware">Hardware & building</option>
+                        <option value="aluminum">Aluminum & glass works</option>
+                        <option value="education">Education</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="country">Country</label>
+                    <select id="country" name="country" required>
+                        <option value="ghana">Ghana</option>
+                        <option value="nigeria">Nigeria</option>
+                        <option value="kenya">Kenya</option>
+                        <option value="senegal">Senegal</option>
+                        <option value="ivorycoast">Ivory Coast</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                    <button type="submit" class="btn btn-primary submit-btn">Register my business free</button>
+
+                    <p class="footer-note">No credit card required. Choose your plan after registration.</p>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        async function handleRegistration(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const formData = new FormData(form);
+            const payload = Object.fromEntries(formData.entries());
+            const firstName = (payload.firstName || 'there').trim();
+            const submitButton = form.querySelector('button[type="submit"]');
+
+            submitButton.disabled = true;
+            submitButton.textContent = 'Registering...';
+
+            try {
+                const response = await fetch('http://localhost:5000/api/businesses', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        firstName: payload.firstName,
+                        lastName: payload.lastName,
+                        businessName: payload.businessName,
+                        phoneNumber: payload.phoneNumber,
+                        email: payload.email,
+                        businessCategory: payload.businessCategory,
+                        country: payload.country,
+                        businessDescription: '',
+                        city: '',
+                        address: ''
+                    })
+                });
+
+                const result = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    const message = result.errors?.[0]?.msg || result.error || 'Registration failed.';
+                    throw new Error(message);
+                }
+
+                window.location.href = `registration-success.html?name=${encodeURIComponent(firstName)}`;
+            } catch (error) {
+                alert(error.message || 'Something went wrong while registering your business.');
+                submitButton.disabled = false;
+                submitButton.textContent = 'Register my business free';
+            }
+        }
+    </script>
+</body>
+</html>

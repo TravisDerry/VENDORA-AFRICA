@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Browse Local Businesses | VENDORA AFRICA</title>
+    <style>
+        :root {
+            --color-primary: #1B4F72;
+            --color-primary-strong: #154060;
+            --color-secondary: #2E86C1;
+            --color-accent: #E6F1FB;
+            --color-text: #1E2A39;
+            --color-text-soft: #5D6B7A;
+            --color-white: #ffffff;
+            --color-border: #D9E3EB;
+            --color-bg: #f5f9fc;
+            --radius: 18px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--color-bg);
+            color: var(--color-text);
+        }
+
+        a { text-decoration: none; }
+
+        .nav {
+            background: var(--color-white);
+            border-bottom: 1px solid var(--color-border);
+            padding: 0 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            color: var(--color-primary);
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .logo span { color: var(--color-secondary); }
+
+        .nav-links {
+            display: flex;
+            gap: 22px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links a {
+            color: var(--color-text-soft);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .nav-links a:hover { color: var(--color-primary); }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: var(--color-white);
+        }
+
+        .btn-primary:hover { background: var(--color-primary-strong); }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .btn-outline:hover { background: var(--color-accent); }
+
+        .page {
+            padding: 56px 20px 80px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .hero h1 {
+            margin: 0 0 12px;
+            font-size: clamp(2.2rem, 4vw, 3.4rem);
+            color: var(--color-primary);
+            line-height: 1.15;
+        }
+
+        .hero p {
+            max-width: 700px;
+            margin: 0 auto;
+            font-size: 17px;
+            line-height: 1.7;
+            color: var(--color-text-soft);
+        }
+
+        .categories {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 30px 0 36px;
+        }
+
+        .category-pill {
+            padding: 10px 20px;
+            border-radius: 999px;
+            border: 1px solid var(--color-border);
+            background: var(--color-white);
+            color: var(--color-text-soft);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .category-pill.active,
+        .category-pill:hover {
+            background: var(--color-accent);
+            border-color: var(--color-secondary);
+            color: var(--color-primary);
+        }
+
+        .businesses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 22px;
+        }
+
+        .business-card {
+            background: var(--color-white);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(27, 79, 114, 0.05);
+        }
+
+        .business-header {
+            height: 150px;
+            position: relative;
+            overflow: hidden;
+            background: #E6F1FB;
+        }
+
+        .business-header img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .business-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--color-primary);
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .business-body {
+            padding: 18px 18px 20px;
+        }
+
+        .business-name {
+            margin: 0 0 8px;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        .business-type {
+            margin: 0 0 12px;
+            color: var(--color-text-soft);
+            font-size: 14px;
+        }
+
+        .business-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .business-rating {
+            font-size: 14px;
+            color: #BA7517;
+            font-weight: 700;
+        }
+
+        .business-status {
+            font-size: 12px;
+            background: #E6F1FB;
+            color: #185FA5;
+            border-radius: 999px;
+            padding: 5px 10px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 640px) {
+            .nav-links { display: none; }
+            .nav { padding: 0 18px; }
+            .businesses-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="index.html" class="logo">VENDORA <span>AFRICA</span></a>
+            <ul class="nav-links">
+                <li><a href="browse.html">Browse businesses</a></li>
+                <li><a href="index.html#how-it-works">How it works</a></li>
+                <li><a href="index.html#pricing">Pricing</a></li>
+                <li><a href="register.html">Register</a></li>
+            </ul>
+            <div class="nav-actions">
+                <a class="btn btn-outline" href="index.html">Home</a>
+                <a class="btn btn-primary" href="register.html">Register free</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="page">
+        <div class="container">
+            <div class="hero">
+                <h1>Browse local businesses</h1>
+                <p>Discover phones, cosmetics, fashion, food, electronics and more from verified local businesses near you.</p>
+            </div>
+
+            <div class="categories">
+                <div class="category-pill active" onclick="filterBusinesses(this, 'all')">All categories</div>
+                <div class="category-pill" onclick="filterBusinesses(this, 'phones')">Phones & electronics</div>
+                <div class="category-pill" onclick="filterBusinesses(this, 'cosmetics')">Cosmetics & beauty</div>
+                <div class="category-pill" onclick="filterBusinesses(this, 'fashion')">Fashion & clothing</div>
+                <div class="category-pill" onclick="filterBusinesses(this, 'food')">Food & grocery</div>
+                <div class="category-pill" onclick="filterBusinesses(this, 'hardware')">Hardware</div>
+            </div>
+
+            <div class="businesses-grid" id="businessesGrid"></div>
+        </div>
+    </main>
+
+    <script>
+        const fallbackBusinesses = [
+            {
+                name: "TechZone Ghana",
+                type: "Phones & electronics",
+                category: "phones",
+                rating: "4.8",
+                image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=80",
+                badge: "Premium",
+                verified: true
+            },
+            {
+                name: "Glow Beauty Hub",
+                type: "Cosmetics & beauty",
+                category: "cosmetics",
+                rating: "4.9",
+                image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=900&q=80",
+                badge: "Standard",
+                verified: true
+            },
+            {
+                name: "AfriStyle Fashion",
+                type: "Fashion & clothing",
+                category: "fashion",
+                rating: "4.7",
+                image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
+                badge: "Premium",
+                verified: true
+            },
+            {
+                name: "Mama's Kitchen",
+                type: "Food & grocery",
+                category: "food",
+                rating: "5.0",
+                image: "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=900&q=80",
+                badge: "Basic",
+                verified: true
+            },
+            {
+                name: "BuildRight Hardware",
+                type: "Hardware & building",
+                category: "hardware",
+                rating: "4.6",
+                image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=900&q=80",
+                badge: "Standard",
+                verified: true
+            },
+            {
+                name: "CosmoGlow NG",
+                type: "Cosmetics & beauty",
+                category: "cosmetics",
+                rating: "4.8",
+                image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
+                badge: "Premium",
+                verified: true
+            },
+            {
+                name: "PhoneKing Accra",
+                type: "Phones & electronics",
+                category: "phones",
+                rating: "4.5",
+                image: "https://images.unsplash.com/photo-1556656793-08538906a9f8?auto=format&fit=crop&w=900&q=80",
+                badge: "Basic",
+                verified: true
+            },
+            {
+                name: "FreshMart Kenya",
+                type: "Food & grocery",
+                category: "food",
+                rating: "4.9",
+                image: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=900&q=80",
+                badge: "Standard",
+                verified: true
+            }
+        ];
+
+        const grid = document.getElementById('businessesGrid');
+        const categoryMap = {
+            phones: 'Phones & electronics',
+            cosmetics: 'Cosmetics & beauty',
+            fashion: 'Fashion & clothing',
+            food: 'Food & grocery',
+            hardware: 'Hardware & building',
+            aluminum: 'Aluminum & glass works',
+            education: 'Education',
+            other: 'Other'
+        };
+
+        let activeCategory = 'all';
+        let businesses = [...fallbackBusinesses];
+
+        function normalizeBusiness(item) {
+            return {
+                name: item.businessName || item.name || 'Business listing',
+                type: categoryMap[item.category] || item.type || 'Business listing',
+                category: item.category || 'other',
+                rating: item.rating ? Number(item.rating).toFixed(1) : '4.8',
+                image: item.image || 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80',
+                badge: item.verified ? 'Verified' : 'New',
+                verified: Boolean(item.verified)
+            };
+        }
+
+        function renderBusinesses(list) {
+            grid.innerHTML = list.map(business => `
+                <div class="business-card">
+                    <div class="business-header">
+                        <img src="${business.image}" alt="${business.name}" />
+                        <div class="business-badge">${business.badge}</div>
+                    </div>
+                    <div class="business-body">
+                        <h3 class="business-name">${business.name}</h3>
+                        <p class="business-type">${business.type}</p>
+                        <div class="business-meta">
+                            <span class="business-rating">★ ${business.rating}</span>
+                            <span class="business-status">${business.verified ? 'Verified' : 'New'}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function applyCategoryFilter() {
+            const filtered = activeCategory === 'all'
+                ? businesses
+                : businesses.filter(item => item.category === activeCategory);
+
+            renderBusinesses(filtered);
+        }
+
+        function filterBusinesses(element, category) {
+            document.querySelectorAll('.category-pill').forEach(pill => pill.classList.remove('active'));
+            element.classList.add('active');
+            activeCategory = category;
+            applyCategoryFilter();
+        }
+
+        async function loadBusinesses() {
+            try {
+                const response = await fetch('http://localhost:5000/api/businesses?limit=20');
+                if (!response.ok) {
+                    throw new Error('Unable to load businesses');
+                }
+
+                const data = await response.json();
+                const liveBusinesses = Array.isArray(data.businesses) ? data.businesses.map(normalizeBusiness) : [];
+                businesses = liveBusinesses.length ? liveBusinesses : [...fallbackBusinesses];
+            } catch (error) {
+                businesses = [...fallbackBusinesses];
+            }
+
+            applyCategoryFilter();
+        }
+
+        loadBusinesses();
+    </script>
+</body>
+</html>

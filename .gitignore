@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Environment files and local secrets
+.env
+.env.*
+!.env.example
+
+# Logs and runtime output
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Expo and React Native build output
+.expo/
+.expo-shared/
+dist/
+web-build/
+android/.gradle/
+android/build/
+ios/Pods/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VENDORA AFRICA - Africa's Business Marketplace</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --color-background-primary: #ffffff;
+            --color-background-secondary: #f8fafc;
+            --color-background-tertiary: #f1f5f9;
+            --color-text-primary: #0f172a;
+            --color-text-secondary: #64748b;
+            --color-border-primary: #e2e8f0;
+            --color-border-secondary: #cbd5e1;
+            --color-border-tertiary: #e2e8f0;
+            --border-radius-sm: 0.375rem;
+            --border-radius-md: 0.5rem;
+            --border-radius-lg: 0.75rem;
+            --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            color: var(--color-text-primary);
+            background: var(--color-background-tertiary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Navigation */
+        .nav {
+            background: var(--color-background-primary);
+            border-bottom: 1px solid var(--color-border-tertiary);
+            padding: 0 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .nav-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 70px;
+            gap: 1.25rem;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1B4F72;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .logo i {
+            color: #2E86C1;
+        }
+
+        .logo .brand-blue {
+            color: #2E86C1;
+        }
+
+        .logo .brand-accent {
+            color: #2E86C1;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            list-style: none;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--color-text-secondary);
+            font-size: 15px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .nav-links a:hover {
+            color: #1B4F72;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: var(--border-radius-md);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #1B4F72;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #154060;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #1B4F72;
+            color: #1B4F72;
+        }
+
+        .btn-outline:hover {
+            background: #E6F1FB;
+            transform: translateY(-1px);
+        }
+
+        .btn-white {
+            background: #fff;
+            color: #1B4F72;
+            font-weight: 600;
+            border: 2px solid #fff;
+        }
+
+        .btn-white:hover {
+            background: #f0f8ff;
+            transform: translateY(-1px);
+        }
+
+        /* Mobile Menu */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #1B4F72;
+            cursor: pointer;
+        }
+
+        /* Hero Section */
+        .hero {
+            background:
+                linear-gradient(135deg, rgba(13, 40, 63, 0.52) 0%, rgba(30, 92, 133, 0.42) 100%),
+                url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
+            padding: 100px 2rem;
+            text-align: center;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.08), rgba(15, 23, 42, 0.18));
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            color: #85B7EB;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 16px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            backdrop-filter: blur(10px);
+        }
+
+        .hero h1 {
+            font-size: clamp(32px, 5vw, 56px);
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.1;
+        }
+
+        .hero h1 span {
+            color: #85B7EB;
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: #B5D4F4;
+            max-width: 600px;
+            margin: 0 auto 30px;
+            line-height: 1.7;
+        }
+
+        .hero-btns {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Stats Section */
+        .stats {
+            background: var(--color-background-primary);
+            padding: 60px 2rem;
+            border-bottom: 1px solid var(--color-border-tertiary);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 28px;
+            max-width: 960px;
+            margin: 0 auto;
+            align-items: end;
+        }
+
+        .stat {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            min-height: 110px;
+        }
+
+        .stat-num {
+            font-size: clamp(1.9rem, 2.8vw, 2.8rem);
+            font-weight: 700;
+            color: #1B4F72;
+            line-height: 1.1;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            line-height: 1.5;
+            min-height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Section Styles */
+        .section {
+            padding: 80px 20px;
+        }
+
+        .section-alt {
+            background: var(--color-background-secondary);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .section-title {
+            font-size: clamp(2rem, 3vw, 2.8rem);
+            font-weight: 700;
+            margin-bottom: 12px;
+            line-height: 1.2;
+            letter-spacing: -0.03em;
+            color: #1B4F72;
+        }
+
+        .section-subtitle {
+            font-size: 16px;
+            color: var(--color-text-secondary);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        /* Categories */
+        .categories {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .category-pill {
+            padding: 10px 20px;
+            border-radius: 25px;
+            background: var(--color-background-primary);
+            border: 2px solid var(--color-border-primary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            color: var(--color-text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .category-pill:hover,
+        .category-pill.active {
+            background: #E6F1FB;
+            border-color: #2E86C1;
+            color: #1B4F72;
+            transform: translateY(-2px);
+        }
+
+        /* Business Grid */
+        .businesses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .business-card {
+            background: var(--color-background-primary);
+            border: 1px solid var(--color-border-primary);
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .business-card:hover {
+            border-color: #2E86C1;
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .business-header {
+            height: 150px;
+            position: relative;
+            overflow: hidden;
+            background: #E6F1FB;
+        }
+
+        .business-header img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .business-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #1B4F72;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .business-body {
+            padding: 20px;
+        }
+
+        .business-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1B4F72;
+        }
+
+        .business-type {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .business-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .business-rating {
+            font-size: 14px;
+            color: #BA7517;
+            font-weight: 600;
+        }
+
+        .business-status {
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            background: #E6F1FB;
+            color: #185FA5;
+            font-weight: 500;
+        }
+
+        /* How It Works */
+        .tabs {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border-radius: var(--border-radius-md);
+            border: 2px solid var(--color-border-primary);
+            background: var(--color-background-primary);
+            color: var(--color-text-secondary);
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: #1B4F72;
+            color: #fff;
+            border-color: #1B4F72;
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 32px;
+        }
+
+        .step {
+            text-align: center;
+        }
+
+        .step-number {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #E6F1FB;
+            color: #1B4F72;
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            border: 3px solid #1B4F72;
+        }
+
+        .step h4 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #1B4F72;
+        }
+
+        .step p {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Pricing */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            background: var(--color-background-primary);
+            border: 2px solid var(--color-border-primary);
+            border-radius: var(--border-radius-lg);
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .pricing-card.featured {
+            border-color: #2E86C1;
+            transform: scale(1.05);
+        }
+
+        .pricing-badge {
+            position: absolute;
+            top: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2E86C1;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 20px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .plan-name {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #1B4F72;
+        }
+
+        .plan-price {
+            font-size: 48px;
+            font-weight: 700;
+            color: #1B4F72;
+            margin-bottom: 8px;
+        }
+
+        .plan-period {
+            font-size: 16px;
+            color: var(--color-text-secondary);
+            margin-bottom: 32px;
+        }
+
+        .plan-features {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 32px;
+        }
+
+        .plan-features li {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            padding: 12px 0;
+            border-bottom: 1px solid var(--color-border-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-check {
+            width: 20px;
+            height: 20px;
+            background: #EAF3DE;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .feature-check i {
+            color: #3B6D11;
+            font-size: 10px;
+        }
+
+        .feature-cross {
+            width: 20px;
+            height: 20px;
+            background: #FCEBEB;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .feature-cross i {
+            color: #A32D2D;
+            font-size: 10px;
+        }
+
+        /* Features */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 32px;
+        }
+
+        .feature-card {
+            background: var(--color-background-primary);
+            border: 1px solid var(--color-border-primary);
+            border-radius: var(--border-radius-lg);
+            padding: 32px;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-color: #2E86C1;
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: var(--border-radius-md);
+            background: #E6F1FB;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .feature-icon i {
+            font-size: 28px;
+            color: #1B4F72;
+        }
+
+        .feature-card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #1B4F72;
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            line-height: 1.7;
+        }
+
+        /* CTA Section */
+        .cta {
+            background: linear-gradient(135deg, #1B4F72 0%, #2E86C1 100%);
+            padding: 80px 20px;
+            text-align: center;
+            color: #fff;
+            position: relative;
+        }
+
+        .cta h2 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .cta p {
+            font-size: 18px;
+            color: #B5D4F4;
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .registration-form {
+            background: var(--color-background-primary);
+            border-radius: var(--border-radius-lg);
+            padding: 40px;
+            max-width: 500px;
+            margin: 0 auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .free-badge {
+            display: inline-block;
+            background: #EAF3DE;
+            color: #3B6D11;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 16px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 32px;
+            color: #1B4F72;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: var(--border-radius-md);
+            border: 2px solid var(--color-border-primary);
+            background: var(--color-background-primary);
+            color: var(--color-text-primary);
+            font-family: var(--font-sans);
+            font-size: 15px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #2E86C1;
+        }
+
+        .form-note {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            text-align: center;
+            margin-top: 16px;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--color-background-primary);
+            border-top: 1px solid var(--color-border-tertiary);
+            padding: 60px 20px 30px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto 40px;
+        }
+
+        .footer-brand h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1B4F72;
+            margin-bottom: 16px;
+        }
+
+        .footer-brand p {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            line-height: 1.7;
+            max-width: 300px;
+        }
+
+        .footer-column h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1B4F72;
+        }
+
+        .footer-column ul {
+            list-style: none;
+        }
+
+        .footer-column li {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .footer-column li:hover {
+            color: #1B4F72;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid var(--color-border-tertiary);
+            padding-top: 30px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .hero {
+                padding: 60px 20px;
+            }
+
+            .hero h1 {
+                font-size: 32px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+
+            .businesses-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-card.featured {
+                transform: scale(1);
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .tab-btn {
+                width: 200px;
+            }
+        }
+
+        /* Loading Animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading {
+            animation: pulse 2s infinite;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1B4F72;
+            color: white;
+            padding: 16px 24px;
+            border-radius: var(--border-radius-md);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <div class="nav-inner">
+                <a href="#" class="logo">
+                    <i class="fas fa-store"></i>
+                    <span class="brand-accent">MT</span> VENDORA <span class="brand-blue">AFRICA</span>
+                </a>
+
+                <ul class="nav-links">
+                    <li><a href="browse.html">Browse businesses</a></li>
+                    <li><a href="#how-it-works">How it works</a></li>
+                    <li><a href="pricing.html">Pricing</a></li>
+                    <li><a href="#about">About</a></li>
+                </ul>
+
+                <div class="nav-actions">
+                    <a class="btn btn-outline" href="signin.html">
+                        <i class="fas fa-sign-in-alt"></i> Sign in
+                    </a>
+                    <a class="btn btn-primary" href="register.html" style="text-decoration: none; display: inline-flex;">
+                        <i class="fas fa-plus-circle"></i> Register free
+                    </a>
+                    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">Africa's business marketplace</div>
+            <h1>Every business.<br><span>Every corner.</span><br>One platform.</h1>
+            <p>Connect your business with millions of customers across Africa. Free to register. Built for small businesses.</p>
+            <div class="hero-btns">
+                <button class="btn btn-white" onclick="scrollToRegistration()">
+                    <i class="fas fa-rocket"></i> List your business free
+                </button>
+                <button class="btn btn-outline" style="border-color: #85B7EB; color: #fff;" onclick="scrollToBrowse()">
+                    <i class="fas fa-search"></i> Browse businesses
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat">
+                    <div class="stat-num">50,000+</div>
+                    <div class="stat-label">Businesses by Year 3</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-num">54</div>
+                    <div class="stat-label">African countries targeted</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-num">Free</div>
+                    <div class="stat-label">To register</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-num">GHS 30</div>
+                    <div class="stat-label">Starting monthly plan</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">How VENDORA AFRICA works</h2>
+                <p class="section-subtitle">Getting started takes less than 5 minutes.</p>
+            </div>
+            
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab(this, 'business')">
+                    <i class="fas fa-store"></i> For businesses
+                </button>
+                <button class="tab-btn" onclick="switchTab(this, 'customer')">
+                    <i class="fas fa-user"></i> For customers
+                </button>
+            </div>
+            
+            <div id="business-tab" class="steps-grid">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h4>Register free</h4>
+                    <p>Sign up and create your business profile in minutes. No cost to join.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h4>Choose a plan</h4>
+                    <p>Pick Basic, Standard, or Premium based on your business size and needs.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h4>List your products</h4>
+                    <p>Upload your products, set your prices, and go live on the platform.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h4>Grow your sales</h4>
+                    <p>Reach customers across Africa online and through our physical hubs.</p>
+                </div>
+            </div>
+            
+            <div id="customer-tab" class="steps-grid" style="display: none;">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h4>Search & discover</h4>
+                    <p>Find local businesses selling phones, cosmetics, food, and more near you.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h4>Browse products</h4>
+                    <p>View products, prices, and reviews from verified local businesses.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h4>Order or visit</h4>
+                    <p>Buy online with Mobile Money or visit the business in person.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h4>Track delivery</h4>
+                    <p>Track your order in real time through our delivery partners.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Features Section -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Why businesses choose VENDORA AFRICA</h2>
+                <p class="section-subtitle">Built specifically for African small businesses not a one-size-fits-all global platform.</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                    <h3>Free to register</h3>
+                    <p>No upfront cost. Create your business profile and storefront at zero cost. Pay only when you choose a plan.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3>Mobile Money payments</h3>
+                    <p>Accept payments via MTN MoMo, Vodafone Cash, Orange Money, and M-Pesa built right into the platform.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h3>Online + physical hubs</h3>
+                    <p>Sell online and through our physical hubs in major African cities. Reach customers wherever they are.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Sales analytics</h3>
+                    <p>Track your sales, monitor customer behaviour, and grow smarter with built-in analytics tools.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-globe-africa"></i>
+                    </div>
+                    <h3>Africa-wide reach</h3>
+                    <p>Your business becomes visible to customers across all 54 African countries through one platform.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-warehouse"></i>
+                    </div>
+                    <h3>Inventory management</h3>
+                    <p>Manage your stock directly from your dashboard. Never lose track of what you have in store.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta" style="display: none;">
+        <div class="container">
+            <h2>Ready to grow your business?</h2>
+            <p>Join thousands of businesses across Africa on VENDORA AFRICA. Registration is completely free.</p>
+
+            <div class="registration-form" style="max-width: 560px;">
+                <div class="free-badge">Free registration</div>
+                <h3 class="form-title">Start your business listing</h3>
+                <p class="form-note" style="text-align: center; margin-bottom: 20px;">Create your profile and get discovered by customers across Africa.</p>
+                <a href="register.html" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 16px; display: inline-flex; text-decoration: none;">
+                    <i class="fas fa-rocket"></i> Register my business free
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <h3><i class="fas fa-store"></i> VENDORA <span>AFRICA</span></h3>
+                <p>Africa's hybrid business marketplace. Connecting small businesses with customers across the continent.</p>
+            </div>
+            
+            <div class="footer-column">
+                <h4>Platform</h4>
+                <ul>
+                    <li onclick="showToast('Browse businesses page coming soon!')">Browse businesses</li>
+                    <li onclick="scrollToRegistration()">List your business</li>
+                    <li onclick="scrollToPricing()">Pricing plans</li>
+                    <li onclick="showToast('Physical hubs information coming soon!')">Physical hubs</li>
+                </ul>
+            </div>
+            
+            <div class="footer-column">
+                <h4>Company</h4>
+                <ul>
+                    <li onclick="showToast('About us page coming soon!')">About us</li>
+                    <li onclick="scrollToHowItWorks()">How it works</li>
+                    <li onclick="showToast('Careers page coming soon!')">Careers</li>
+                    <li onclick="showToast('Contact page coming soon!')">Contact us</li>
+                </ul>
+            </div>
+            
+            <div class="footer-column">
+                <h4>Support</h4>
+                <ul>
+                    <li onclick="showToast('Help centre coming soon!')">Help centre</li>
+                    <li onclick="showToast('Business guide coming soon!')">Business guide</li>
+                    <li onclick="showToast('Terms of use coming soon!')">Terms of use</li>
+                    <li onclick="showToast('Privacy policy coming soon!')">Privacy policy</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>© 2026 VENDORA AFRICA. All rights reserved. Built for Africa, by Africa.</p>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // Sample business data
+        const businesses = [
+            {
+                name: "TechZone Ghana",
+                type: "Phones & electronics",
+                category: "phones",
+                rating: "4.8",
+                color: "#E6F1FB",
+                image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=80",
+                badge: "Premium",
+                verified: true
+            },
+            {
+                name: "Glow Beauty Hub",
+                type: "Cosmetics & beauty",
+                category: "cosmetics",
+                rating: "4.9",
+                color: "#FBEAF0",
+                image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=900&q=80",
+                badge: "Standard",
+                verified: true
+            },
+            {
+                name: "AfriStyle Fashion",
+                type: "Fashion & clothing",
+                category: "fashion",
+                rating: "4.7",
+                color: "#EAF3DE",
+                image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
+                badge: "Premium",
+                verified: true
+            },
+            {
+                name: "Mama's Kitchen",
+                type: "Food & grocery",
+                category: "food",
+                rating: "5.0",
+                color: "#FAEEDA",
+                image: "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=900&q=80",
+                badge: "Basic",
+                verified: true
+            },
+            {
+                name: "BuildRight Hardware",
+                type: "Hardware & building",
+                category: "hardware",
+                rating: "4.6",
+                color: "#F1EFE8",
+                image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=900&q=80",
+                badge: "Standard",
+                verified: true
+            },
+            {
+                name: "CosmoGlow NG",
+                type: "Cosmetics & beauty",
+                category: "cosmetics",
+                rating: "4.8",
+                color: "#FBEAF0",
+                image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
+                badge: "Premium",
+                verified: true
+            },
+            {
+                name: "PhoneKing Accra",
+                type: "Phones & electronics",
+                category: "phones",
+                rating: "4.5",
+                color: "#E6F1FB",
+                image: "https://images.unsplash.com/photo-1556656793-08538906a9f8?auto=format&fit=crop&w=900&q=80",
+                badge: "Basic",
+                verified: true
+            },
+            {
+                name: "FreshMart Kenya",
+                type: "Food & grocery",
+                category: "food",
+                rating: "4.9",
+                color: "#FAEEDA",
+                image: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=900&q=80",
+                badge: "Standard",
+                verified: true
+            }
+        ];
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            renderBusinesses(businesses);
+        });
+
+        // Render businesses
+        function renderBusinesses(businessList) {
+            const grid = document.getElementById('businessesGrid');
+            grid.innerHTML = businessList.map(business => `
+                <div class="business-card" onclick="viewBusiness('${business.name}')">
+                    <div class="business-header" style="background: ${business.color};">
+                        <img src="${business.image}" alt="${business.name} business image" loading="lazy" />
+                        <div class="business-badge">${business.badge}</div>
+                    </div>
+                    <div class="business-body">
+                        <div class="business-name">${business.name}</div>
+                        <div class="business-type">${business.type}</div>
+                        <div class="business-meta">
+                            <span class="business-rating"> <i class="fas fa-star"></i> ${business.rating}</span>
+                            <span class="business-status">${business.verified ? '<i class="fas fa-check-circle"></i> Verified' : 'New'}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Filter businesses
+        function filterBusinesses(element, category) {
+            // Update active state
+            document.querySelectorAll('.category-pill').forEach(pill => {
+                pill.classList.remove('active');
+            });
+            element.classList.add('active');
+
+            // Filter and render
+            const filtered = category === 'all' 
+                ? businesses 
+                : businesses.filter(b => b.category === category);
+            
+            renderBusinesses(filtered);
+        }
+
+        // Switch tabs
+        function switchTab(element, tab) {
+            // Update active button
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            element.classList.add('active');
+
+            // Show/hide content
+            const businessTab = document.getElementById('business-tab');
+            const customerTab = document.getElementById('customer-tab');
+
+            if (tab === 'business') {
+                businessTab.style.display = 'grid';
+                customerTab.style.display = 'none';
+            } else {
+                businessTab.style.display = 'none';
+                customerTab.style.display = 'grid';
+            }
+        }
+
+        // Select pricing plan
+        function selectPlan(plan) {
+            showToast(`Great choice! You selected the ${plan} plan. Please complete registration first.`);
+            scrollToRegistration();
+        }
+
+        // View business details
+        function viewBusiness(businessName) {
+            showToast(`Viewing ${businessName} - Detailed business page coming soon!`);
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Scroll functions
+        function scrollToRegistration() {
+            document.getElementById('registrationForm').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'center'
+            });
+        }
+
+        function scrollToBrowse() {
+            document.getElementById('browse').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        function scrollToPricing() {
+            document.getElementById('pricing').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        function scrollToHowItWorks() {
+            document.getElementById('how-it-works').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            showToast('Mobile menu coming soon!');
+        }
+
+        // Smooth scroll for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add scroll animations
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            const parallax = document.querySelector('.hero');
+            if (parallax) {
+                parallax.style.transform = `translateY(${scrolled * 0.5}px)`;
+            }
+        });
+
+        // Form validation
+        function validatePhone(phone) {
+            const phoneRegex = /^\+?[0-9]{10,15}$/;
+            return phoneRegex.test(phone.replace(/\s/g, ''));
+        }
+
+        // Add input validation
+        document.getElementById('phoneNumber').addEventListener('blur', function() {
+            if (!validatePhone(this.value)) {
+                this.setCustomValidity('Please enter a valid phone number');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    </script>
+</body>
+</html>
