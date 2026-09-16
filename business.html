@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Business | VENDORA AFRICA</title>
+    <style>
+        :root { --navy: #123b56; --blue: #2e86c1; --ink: #172b3a; --muted: #607181; --line: #dce6ed; --surface: #fff; --bg: #f4f8fb; --green: #197a55; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--bg); color: var(--ink); font-family: Arial, Helvetica, sans-serif; }
+        a { color: inherit; text-decoration: none; }
+        .nav { background: var(--surface); border-bottom: 1px solid var(--line); padding: 0 24px; }
+        .nav-inner { max-width: 1120px; height: 70px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+        .logo { color: var(--navy); font-weight: 800; letter-spacing: .04em; }
+        .logo span { color: var(--blue); }
+        .back { color: var(--navy); font-weight: 700; font-size: 14px; }
+        main { max-width: 1120px; margin: auto; padding: 44px 24px 80px; }
+        .business-hero { background: linear-gradient(120deg, var(--navy), var(--blue)); color: #fff; border-radius: 18px; padding: 36px; display: flex; justify-content: space-between; gap: 24px; align-items: end; }
+        .eyebrow { margin: 0 0 10px; color: #cde7f8; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+        h1 { margin: 0 0 10px; font-size: clamp(2rem, 5vw, 3.4rem); }
+        .hero-type { margin: 0; color: #e6f4fc; font-size: 17px; }
+        .rating { white-space: nowrap; font-size: 16px; font-weight: 700; }
+        .verified { display: inline-block; margin-top: 12px; padding: 7px 12px; border: 1px solid rgba(255,255,255,.4); border-radius: 999px; font-size: 12px; }
+        .layout { display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px; margin-top: 24px; }
+        .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 24px; }
+        h2 { margin: 0 0 18px; color: var(--navy); font-size: 22px; }
+        .product-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+        .product { border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 9px; }
+        .product h3 { margin: 0; font-size: 16px; }
+        .product p { margin: 0; color: var(--muted); font-size: 13px; min-height: 32px; }
+        .price { color: var(--navy); font-size: 17px; font-weight: 800; }
+        button, .button { border: 0; border-radius: 9px; padding: 11px 14px; background: var(--navy); color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; text-align: center; }
+        button:hover, .button:hover { background: #0b2b40; }
+        .details { display: grid; gap: 16px; }
+        .detail { display: flex; gap: 12px; align-items: start; }
+        .detail strong { display: block; margin-bottom: 3px; color: var(--navy); }
+        .detail span { color: var(--muted); font-size: 14px; line-height: 1.5; }
+        .empty { color: var(--muted); line-height: 1.6; }
+        dialog { width: min(460px, calc(100% - 32px)); border: 0; border-radius: 14px; padding: 0; box-shadow: 0 20px 70px rgba(15, 42, 60, .25); }
+        dialog::backdrop { background: rgba(10, 31, 45, .55); }
+        .dialog-body { padding: 24px; }
+        .dialog-body h2 { margin-bottom: 8px; }
+        .dialog-body p { color: var(--muted); margin-top: 0; }
+        label { display: block; margin-top: 14px; color: var(--navy); font-size: 13px; font-weight: 700; }
+        input, textarea { width: 100%; margin-top: 6px; padding: 11px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+        textarea { min-height: 76px; resize: vertical; }
+        .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+        .secondary { background: #eaf2f7; color: var(--navy); }
+        .notice { margin-top: 14px; color: var(--green); font-weight: 700; }
+        @media (max-width: 720px) { .business-hero, .layout { display: block; } .rating { margin-top: 22px; } .panel { margin-top: 18px; } .product-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <nav class="nav"><div class="nav-inner"><a class="logo" href="index.html">MT VENDORA <span>AFRICA</span></a><a class="back" href="browse.html">Back to businesses</a></div></nav>
+    <main>
+        <section class="business-hero">
+            <div><p class="eyebrow" id="businessCategory">Business</p><h1 id="businessName">Loading business...</h1><p class="hero-type" id="businessDescription">Loading business information</p><span class="verified">Verified local business</span></div>
+            <div class="rating">★ <span id="businessRating">4.8</span></div>
+        </section>
+        <div class="layout">
+            <section class="panel"><h2>Products and services</h2><div class="product-grid" id="products"></div></section>
+            <aside class="panel"><h2>Contact this business</h2><div class="details"><div class="detail"><span>Location</span><div><strong id="businessLocation">Available locally</strong><span>Contact the business to confirm delivery or pickup.</span></div></div><div class="detail"><span>Phone</span><div><strong id="businessPhone">Contact available after order</strong><span>Use the order form and the business will respond.</span></div></div></div><a class="button" id="callButton" href="#" style="display:block;margin-top:22px">Contact business</a></aside>
+        </div>
+    </main>
+    <dialog id="orderDialog"><form class="dialog-body" method="dialog" id="orderForm"><h2>Request an order</h2><p id="orderProduct"></p><label for="customerName">Your name</label><input id="customerName" required /><label for="customerPhone">Phone number</label><input id="customerPhone" type="tel" required /><label for="customerNote">Note</label><textarea id="customerNote" placeholder="Quantity, delivery address, or any questions"></textarea><div class="dialog-actions"><button type="button" class="secondary" onclick="orderDialog.close()">Cancel</button><button type="submit">Send request</button></div><div class="notice" id="orderNotice" hidden>Order request saved. The business can now contact you.</div></form></dialog>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const categoryLabels = { phones: 'Phones and electronics', cosmetics: 'Cosmetics and beauty', fashion: 'Fashion and clothing', food: 'Food and grocery', hardware: 'Hardware and building', aluminum: 'Aluminum and glass works', education: 'Education', other: 'Other' };
+        const fallbackProducts = {
+            phones: [['iPhone 14 Pro', 'Smartphones', 'GHS 8,500'], ['Samsung Galaxy S23', 'Smartphones', 'GHS 7,200'], ['MacBook Air M2', 'Laptops', 'GHS 12,000'], ['AirPods Pro', 'Accessories', 'GHS 1,200']],
+            cosmetics: [['Skin care set', 'Beauty products', 'GHS 180'], ['Natural hair bundle', 'Hair care', 'GHS 250'], ['Perfume collection', 'Fragrance', 'GHS 220']],
+            fashion: [['African print dress', 'Clothing', 'GHS 350'], ['Custom shirt', 'Clothing', 'GHS 180'], ['Leather sandals', 'Footwear', 'GHS 160']],
+            food: [['Family meal box', 'Prepared food', 'GHS 120'], ['Fresh grocery basket', 'Groceries', 'GHS 200'], ['Local breakfast', 'Prepared food', 'GHS 45']],
+            hardware: [['Building tool set', 'Tools', 'GHS 450'], ['Cement and blocks', 'Building materials', 'GHS 300'], ['Safety equipment', 'Hardware', 'GHS 180']]
+        };
+        let business = { name: params.get('name') || 'Business listing', category: params.get('category') || 'other', rating: '4.8' };
+        const name = document.getElementById('businessName');
+        const category = document.getElementById('businessCategory');
+        const products = document.getElementById('products');
+        function renderBusiness() {
+            name.textContent = business.businessName || business.name;
+            category.textContent = categoryLabels[business.category] || 'Business';
+            document.getElementById('businessDescription').textContent = business.description || `Shop products and services from ${business.businessName || business.name}.`;
+            document.getElementById('businessRating').textContent = Number(business.rating || 4.8).toFixed(1);
+            document.getElementById('businessLocation').textContent = business.location?.city || business.country || 'Available locally';
+            document.getElementById('businessPhone').textContent = business.phoneNumber || 'Contact available after order';
+            const items = fallbackProducts[business.category] || [['Featured product', 'Products and services', 'Contact for price'], ['Custom request', 'Made to order', 'Contact for price']];
+            products.innerHTML = items.map(item => `<article class="product"><h3>${item[0]}</h3><p>${item[1]}</p><span class="price">${item[2]}</span><button type="button" onclick="openOrder('${item[0].replace(/'/g, "\\'")}')">Order from this business</button></article>`).join('');
+            document.getElementById('callButton').href = business.phoneNumber ? `tel:${business.phoneNumber}` : '#orderDialog';
+        }
+        async function loadBusiness() {
+            if (!params.get('id')) { renderBusiness(); return; }
+            try { const response = await fetch(`http://localhost:5000/api/businesses/${encodeURIComponent(params.get('id'))}`); if (response.ok) business = await response.json(); } catch (error) { /* Use listing data when the API is unavailable. */ }
+            renderBusiness();
+        }
+        function openOrder(productName) { document.getElementById('orderProduct').textContent = `${productName} from ${business.businessName || business.name}`; document.getElementById('orderNotice').hidden = true; document.getElementById('orderDialog').showModal(); }
+        document.getElementById('orderForm').addEventListener('submit', event => { event.preventDefault(); document.getElementById('orderNotice').hidden = false; });
+        loadBusiness();
+    </script>
+</body>
+</html>

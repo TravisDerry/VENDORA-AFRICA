@@ -1184,6 +1184,7 @@
         // Sample business data
         const businesses = [
             {
+                id: "techzone-ghana",
                 name: "TechZone Ghana",
                 type: "Phones & electronics",
                 category: "phones",
@@ -1194,6 +1195,7 @@
                 verified: true
             },
             {
+                id: "glow-beauty-hub",
                 name: "Glow Beauty Hub",
                 type: "Cosmetics & beauty",
                 category: "cosmetics",
@@ -1204,6 +1206,7 @@
                 verified: true
             },
             {
+                id: "afristyle-fashion",
                 name: "AfriStyle Fashion",
                 type: "Fashion & clothing",
                 category: "fashion",
@@ -1214,6 +1217,7 @@
                 verified: true
             },
             {
+                id: "mamas-kitchen",
                 name: "Mama's Kitchen",
                 type: "Food & grocery",
                 category: "food",
@@ -1224,6 +1228,7 @@
                 verified: true
             },
             {
+                id: "buildright-hardware",
                 name: "BuildRight Hardware",
                 type: "Hardware & building",
                 category: "hardware",
@@ -1234,6 +1239,7 @@
                 verified: true
             },
             {
+                id: "cosmoglow-ng",
                 name: "CosmoGlow NG",
                 type: "Cosmetics & beauty",
                 category: "cosmetics",
@@ -1244,6 +1250,7 @@
                 verified: true
             },
             {
+                id: "phoneking-accra",
                 name: "PhoneKing Accra",
                 type: "Phones & electronics",
                 category: "phones",
@@ -1254,6 +1261,7 @@
                 verified: true
             },
             {
+                id: "freshmart-kenya",
                 name: "FreshMart Kenya",
                 type: "Food & grocery",
                 category: "food",
@@ -1274,7 +1282,7 @@
         function renderBusinesses(businessList) {
             const grid = document.getElementById('businessesGrid');
             grid.innerHTML = businessList.map(business => `
-                <div class="business-card" onclick="viewBusiness('${business.name}')">
+                <div class="business-card" onclick='viewBusiness(${JSON.stringify(business.name)}, ${JSON.stringify(business.category)}, ${JSON.stringify(business.id)})'>
                     <div class="business-header" style="background: ${business.color};">
                         <img src="${business.image}" alt="${business.name} business image" loading="lazy" />
                         <div class="business-badge">${business.badge}</div>
@@ -1335,8 +1343,10 @@
         }
 
         // View business details
-        function viewBusiness(businessName) {
-            showToast(`Viewing ${businessName} - Detailed business page coming soon!`);
+        function viewBusiness(businessName, category, businessId) {
+            const params = new URLSearchParams({ name: businessName, category });
+            if (businessId) params.set('id', businessId);
+            window.location.href = `business.html?${params.toString()}`;
         }
 
         // Show toast notification

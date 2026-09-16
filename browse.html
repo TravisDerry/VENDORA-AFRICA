@@ -168,6 +168,8 @@
         }
 
         .business-card {
+            display: block;
+            color: inherit;
             background: var(--color-white);
             border: 1px solid var(--color-border);
             border-radius: var(--radius);
@@ -377,6 +379,7 @@
 
         function normalizeBusiness(item) {
             return {
+                id: item._id || item.id || '',
                 name: item.businessName || item.name || 'Business listing',
                 type: categoryMap[item.category] || item.type || 'Business listing',
                 category: item.category || 'other',
@@ -389,7 +392,7 @@
 
         function renderBusinesses(list) {
             grid.innerHTML = list.map(business => `
-                <div class="business-card">
+                <a class="business-card" href="business.html?name=${encodeURIComponent(business.name)}&category=${encodeURIComponent(business.category)}${business.id ? `&id=${encodeURIComponent(business.id)}` : ''}">
                     <div class="business-header">
                         <img src="${business.image}" alt="${business.name}" />
                         <div class="business-badge">${business.badge}</div>
@@ -402,7 +405,7 @@
                             <span class="business-status">${business.verified ? 'Verified' : 'New'}</span>
                         </div>
                     </div>
-                </div>
+                </a>
             `).join('');
         }
 
