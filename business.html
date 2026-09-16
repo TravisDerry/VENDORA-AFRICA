@@ -26,6 +26,7 @@
         h2 { margin: 0 0 18px; color: var(--navy); font-size: 22px; }
         .product-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
         .product { border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 9px; }
+        .product-image { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 9px; background: #eaf2f7; }
         .product h3 { margin: 0; font-size: 16px; }
         .product p { margin: 0; color: var(--muted); font-size: 13px; min-height: 32px; }
         .price { color: var(--navy); font-size: 17px; font-weight: 800; }
@@ -67,11 +68,11 @@
         const params = new URLSearchParams(window.location.search);
         const categoryLabels = { phones: 'Phones and electronics', cosmetics: 'Cosmetics and beauty', fashion: 'Fashion and clothing', food: 'Food and grocery', hardware: 'Hardware and building', aluminum: 'Aluminum and glass works', education: 'Education', other: 'Other' };
         const fallbackProducts = {
-            phones: [['iPhone 14 Pro', 'Smartphones', 'GHS 8,500'], ['Samsung Galaxy S23', 'Smartphones', 'GHS 7,200'], ['MacBook Air M2', 'Laptops', 'GHS 12,000'], ['AirPods Pro', 'Accessories', 'GHS 1,200']],
-            cosmetics: [['Skin care set', 'Beauty products', 'GHS 180'], ['Natural hair bundle', 'Hair care', 'GHS 250'], ['Perfume collection', 'Fragrance', 'GHS 220']],
-            fashion: [['African print dress', 'Clothing', 'GHS 350'], ['Custom shirt', 'Clothing', 'GHS 180'], ['Leather sandals', 'Footwear', 'GHS 160']],
-            food: [['Family meal box', 'Prepared food', 'GHS 120'], ['Fresh grocery basket', 'Groceries', 'GHS 200'], ['Local breakfast', 'Prepared food', 'GHS 45']],
-            hardware: [['Building tool set', 'Tools', 'GHS 450'], ['Cement and blocks', 'Building materials', 'GHS 300'], ['Safety equipment', 'Hardware', 'GHS 180']]
+            phones: [['iPhone 14 Pro', 'Smartphones', 'GHS 8,500', 'phones.jpg'], ['Samsung Galaxy S23', 'Smartphones', 'GHS 7,200', 'phones.jpg'], ['MacBook Air M2', 'Laptops', 'GHS 12,000', 'phones.jpg'], ['AirPods Pro', 'Accessories', 'GHS 1,200', 'phones.jpg']],
+            cosmetics: [['Skin care set', 'Beauty products', 'GHS 180', 'cosmetics.jpg'], ['Natural hair bundle', 'Hair care', 'GHS 250', 'cosmetics.jpg'], ['Perfume collection', 'Fragrance', 'GHS 220', 'cosmetics.jpg']],
+            fashion: [['African print dress', 'Clothing', 'GHS 350', 'fashion.jpg'], ['Custom shirt', 'Clothing', 'GHS 180', 'fashion.jpg'], ['Leather sandals', 'Footwear', 'GHS 160', 'fashion.jpg']],
+            food: [['Family meal box', 'Prepared food', 'GHS 120', 'food.jpg'], ['Fresh grocery basket', 'Groceries', 'GHS 200', 'food.jpg'], ['Local breakfast', 'Prepared food', 'GHS 45', 'food.jpg']],
+            hardware: [['Building tool set', 'Tools', 'GHS 450', 'hardware.jpg'], ['Cement and blocks', 'Building materials', 'GHS 300', 'hardware.jpg'], ['Safety equipment', 'Hardware', 'GHS 180', 'hardware.jpg']]
         };
         let business = { name: params.get('name') || 'Business listing', category: params.get('category') || 'other', rating: '4.8' };
         const name = document.getElementById('businessName');
@@ -84,8 +85,8 @@
             document.getElementById('businessRating').textContent = Number(business.rating || 4.8).toFixed(1);
             document.getElementById('businessLocation').textContent = business.location?.city || business.country || 'Available locally';
             document.getElementById('businessPhone').textContent = business.phoneNumber || 'Contact available after order';
-            const items = fallbackProducts[business.category] || [['Featured product', 'Products and services', 'Contact for price'], ['Custom request', 'Made to order', 'Contact for price']];
-            products.innerHTML = items.map(item => `<article class="product"><h3>${item[0]}</h3><p>${item[1]}</p><span class="price">${item[2]}</span><button type="button" onclick="openOrder('${item[0].replace(/'/g, "\\'")}')">Order from this business</button></article>`).join('');
+            const items = fallbackProducts[business.category] || [['Featured product', 'Products and services', 'Contact for price', 'other.jpg'], ['Custom request', 'Made to order', 'Contact for price', 'other.jpg']];
+            products.innerHTML = items.map(item => `<article class="product"><img class="product-image" src="assets/products/${item[3]}" alt="${item[0]}" loading="lazy" /><h3>${item[0]}</h3><p>${item[1]}</p><span class="price">${item[2]}</span><button type="button" onclick="openOrder('${item[0].replace(/'/g, "\\'")}')">Order from this business</button></article>`).join('');
             document.getElementById('callButton').href = business.phoneNumber ? `tel:${business.phoneNumber}` : '#orderDialog';
         }
         async function loadBusiness() {
