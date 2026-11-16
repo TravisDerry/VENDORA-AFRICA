@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Vendora Admin</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+  <!-- Log in -->
+  <div id="login" class="login-page" hidden>
+    <div class="login-card">
+      <div class="brand big"><span class="logo">V</span><div><strong>Vendora Admin</strong><small>Private · team only</small></div></div>
+      <h1>Welcome back</h1>
+      <p class="muted">Enter your admin password to continue.</p>
+      <form id="loginForm">
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" required>
+        <button type="submit" class="primary">Log in</button>
+        <p id="loginError" class="error" role="alert"></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- App -->
+  <div id="app" class="shell" hidden>
+    <aside class="sidebar">
+      <div class="brand"><span class="logo">V</span><div><strong>Vendora Admin</strong><small>Private · team only</small></div></div>
+      <nav class="tabs" role="tablist" aria-label="Sections">
+        <button role="tab" data-tab="overview" class="on">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h6V4H4zm0 7h6v-5H4zm10 0h6v-9h-6zm0-16v5h6V4z"/></svg><span>Overview</span>
+        </button>
+        <button role="tab" data-tab="businesses">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16l1 5a3 3 0 0 1-5 2 3 3 0 0 1-4 0 3 3 0 0 1-4 0 3 3 0 0 1-5-2zm1 9h14v7H5z"/></svg><span>Businesses</span><span id="pendingBadge" class="pill" hidden></span>
+        </button>
+        <button role="tab" data-tab="support">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v12H8l-4 4zm4 5h8v2H8z"/></svg><span>Support</span><span id="supportBadge" class="pill" hidden></span>
+        </button>
+        <button role="tab" data-tab="payments">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18v12H3zm2 3v2h14V9zm2 5v2h4v-2z"/></svg><span>Payments</span>
+        </button>
+        <button role="tab" data-tab="settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg><span>Settings</span>
+        </button>
+      </nav>
+      <button id="logout" class="logout">Log out</button>
+    </aside>
+
+    <main class="content">
+      <header class="pagebar">
+        <div>
+          <h1 id="pageTitle">Overview</h1>
+          <p id="pageSub" class="muted"></p>
+        </div>
+        <button id="refresh" class="outline" title="Refresh" aria-label="Refresh"><span class="refresh-icon">⟳</span><span class="refresh-text"> Refresh</span></button>
+      </header>
+
+      <section id="tab-overview" class="tab"></section>
+
+      <section id="tab-businesses" class="tab" hidden>
+        <div class="toolbar">
+          <div class="seg" role="radiogroup">
+            <button data-filter="pending" class="on">Waiting</button>
+            <button data-filter="verified">Verified</button>
+            <button data-filter="all">All</button>
+          </div>
+          <input id="bizSearch" type="search" placeholder="Search name, phone, email or city">
+        </div>
+        <div id="bizList"></div>
+      </section>
+
+      <section id="tab-support" class="tab" hidden>
+        <div class="toolbar">
+          <div class="seg" role="radiogroup">
+            <button data-status="open" class="on">Open</button>
+            <button data-status="all">All</button>
+          </div>
+        </div>
+        <div id="supportList"></div>
+      </section>
+
+      <section id="tab-payments" class="tab" hidden>
+        <div id="paymentList"></div>
+      </section>
+
+      <section id="tab-settings" class="tab" hidden></section>
+    </main>
+  </div>
+
+  <div id="modal" class="modal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true">
+      <div id="modalBody"></div>
+      <button id="modalClose" class="outline full">Close</button>
+    </div>
+  </div>
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="/admin/admin.js"></script>
+</body>
+</html>

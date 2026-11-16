@@ -89,6 +89,9 @@ const businessSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  // Set by the Vendora team after checking the business is real (npm run verify)
+  verifiedAt: Date,
+  verificationNote: String,
 
   status: {
     type: String,
@@ -110,8 +113,30 @@ const businessSchema = new mongoose.Schema({
       type: Boolean,
       default: false
     },
-    paymentMethod: String,
-    lastPayment: Date
+    lastPayment: Date,
+    // true during the free first month
+    trial: {
+      type: Boolean,
+      default: false
+    }
+  },
+
+  // Customers can pay this business with Mobile Money (set up by the owner)
+  acceptsPayments: {
+    type: Boolean,
+    default: false
+  },
+  // Where customer payments are sent (a Paystack subaccount on the owner's MoMo number).
+  // Hidden from public API responses.
+  payout: {
+    type: new mongoose.Schema({
+      provider: String,
+      phone: String,
+      accountName: String,
+      subaccountCode: String,
+      updatedAt: Date
+    }, { _id: false }),
+    select: false
   },
 
   // Products and services
@@ -212,6 +237,10 @@ const businessSchema = new mongoose.Schema({
   passwordResetToken: String,
   passwordResetExpires: Date,
 
+  // Owner key: only its SHA-256 hash is stored. The plain key is shown to the owner once.
+  // select: false keeps it out of every API response.
+  manageKeyHash: { type: String, select: false },
+
   // Social media
   socialMedia: {
     website: String,
@@ -234,6 +263,7 @@ const businessSchema = new mongoose.Schema({
 
   // Images
   images: {
+    cover: String, // owner's own cover photo (/uploads/... or https://...)
     logo: String,
     banner: String,
     gallery: [String]

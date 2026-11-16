@@ -26,3 +26,6 @@ ios/Pods/
 Thumbs.db
 .vscode/
 .idea/
+# Photos uploaded by business owners (local testing storage)
+backend/uploads/*
+!backend/uploads/.gitkeep

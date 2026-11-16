@@ -1,525 +1,280 @@
-import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  ScrollView, 
-  TouchableOpacity, 
-  StyleSheet,
-  Alert
-} from 'react-native';
+// Pricing: first month free, then a monthly listing price set by business category.
+// Prices come from the backend (backend/config/pricing.js) so they can change without an app update.
+import React, { useCallback, useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, LayoutAnimation, Platform, UIManager, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { colors, spacing, radius, type, shadow } from '../theme';
+import { Touchable, Card, Button, Badge, SectionHeader, useStatusBar } from '../components/ui';
+import { usePaymentConfig } from '../components/MomoPayment';
+import { getLiveOwnedBusinesses } from '../utils/ownerKeys';
+import { API_BASE_URL } from '../config';
+import { getCategory } from '../data/categories';
 
-const PricingScreen = () => {
-  const [selectedPlan, setSelectedPlan] = useState(null);
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
-  const plans = [
-    {
-      id: 'basic',
-      name: 'Basic',
-      price: 'GHS 30',
-      period: 'per month',
-      description: 'Perfect for small businesses getting started',
-      badge: null,
-      features: [
-        { text: 'Business profile & storefront', included: true },
-        { text: 'Up to 10 product listings', included: true },
-        { text: 'Mobile Money integration', included: true },
-        { text: 'Customer reviews & ratings', included: true },
-        { text: 'Inventory management', included: false },
-        { text: 'Sales analytics', included: false },
-      ],
-      color: '#64748b',
-    },
-    {
-      id: 'standard',
-      name: 'Standard',
-      price: 'GHS 70',
-      period: 'per month',
-      description: 'Great for growing businesses',
-      badge: 'Most popular',
-      features: [
-        { text: 'Everything in Basic', included: true },
-        { text: 'Up to 50 product listings', included: true },
-        { text: 'Inventory management tools', included: true },
-        { text: 'Priority search ranking', included: true },
-        { text: 'Sales analytics & reports', included: true },
-        { text: 'Featured homepage placement', included: false },
-      ],
-      color: '#1B4F72',
-    },
-    {
-      id: 'premium',
-      name: 'Premium',
-      price: 'GHS 150',
-      period: 'per month',
-      description: 'For established businesses scaling up',
-      badge: null,
-      features: [
-        { text: 'Everything in Standard', included: true },
-        { text: 'Unlimited product listings', included: true },
-        { text: 'Featured homepage placement', included: true },
-        { text: 'Advertising & promo tools', included: true },
-        { text: 'Delivery partnership access', included: true },
-        { text: 'Dedicated customer support', included: true },
-      ],
-      color: '#2E86C1',
-    },
+const CATEGORY_ICONS = {
+  food: 'restaurant-outline',
+  cosmetics: 'color-palette-outline',
+  fashion: 'shirt-outline',
+  education: 'school-outline',
+  other: 'business-outline',
+  phones: 'phone-portrait-outline',
+  hardware: 'construct-outline',
+  aluminum: 'grid-outline',
+};
+
+const TIER_TONES = [
+  { gradient: ['#2F6B12', '#4C9A2A'] }, // lowest: green
+  { gradient: ['#1B4F72', '#2E86C1'] }, // brand blue
+  { gradient: ['#0B2638', '#1B4F72'] }, // deep navy
+];
+
+const INCLUDED = [
+  'Business page with photos, location and opening hours',
+  'List your products with prices',
+  'Customers pay you with MoMo (Buy and Pay buttons)',
+  'Show up on Home, Explore and search',
+  'Call, message and directions buttons',
+  'See payments you receive in the app',
+];
+
+const PricingScreen = ({ navigation }) => {
+  useStatusBar('dark');
+  const insets = useSafeAreaInsets();
+  const { config, error } = usePaymentConfig();
+  const [openFaq, setOpenFaq] = useState(0);
+  const [ownsBusiness, setOwnsBusiness] = useState(false);
+
+  useFocusEffect(useCallback(() => { getLiveOwnedBusinesses(API_BASE_URL).then((l) => setOwnsBusiness(l.length > 0)); }, []));
+
+  const p = config?.pricing;
+  const freeDays = p?.freeDays || 30;
+  const graceDays = p?.graceDays || 7;
+  const categories = p?.categories || [];
+  const lowest = categories.length ? Math.min(...categories.map((c) => c.price)) : null;
+  // Group business types that share a price: one card per price, cheapest first
+  const tiers = Object.values(categories.reduce((acc, c) => {
+    (acc[c.price] = acc[c.price] || { price: c.price, cats: [] }).cats.push(c);
+    return acc;
+  }, {})).sort((a, b) => a.price - b.price);
+
+  const steps = [
+    { icon: 'gift-outline', title: 'Register free, we approve you', text: `The Vendora team checks your business is real, then your first ${freeDays} days are free with every feature.` },
+    { icon: 'notifications-outline', title: 'We remind you', text: 'Your page and Account tab show how many free days are left.' },
+    { icon: 'wallet-outline', title: 'Then pay monthly with MoMo', text: 'The price depends on your type of business (see below). Each payment adds 30 days.' },
+    { icon: 'eye-off-outline', title: `Missed it? ${graceDays} days' grace`, text: `After that your business is hidden until you pay. Your products are kept, and paying brings you straight back.` },
   ];
 
   const faqs = [
-    {
-      question: 'Can I change my plan later?',
-      answer: 'Yes! You can upgrade or downgrade your plan at any time. Changes take effect at the next billing cycle.',
-    },
-    {
-      question: 'What payment methods are accepted?',
-      answer: 'We accept Mobile Money (MTN MoMo, Vodafone Cash, Orange Money, M-Pesa) and bank transfers.',
-    },
-    {
-      question: 'Is there a contract?',
-      answer: 'No contracts! You can cancel your subscription at any time with no penalties.',
-    },
-    {
-      question: 'Do you offer discounts?',
-      answer: 'Yes! We offer 20% off for annual subscriptions and special rates for startups.',
-    },
+    { q: 'Do I need to pay to register?', a: `No. Registration is free. After the Vendora team approves your business, your first ${freeDays} days cost nothing.` },
+    { q: 'How do I pay?', a: 'With Mobile Money: MTN MoMo, Telecel Cash or AirtelTigo Money. Open Account > Manage my business, or tap the payment card on your business page, and approve with your own PIN.' },
+    { q: 'Will money be taken automatically?', a: 'No. Nothing is charged automatically. You choose when to pay each month, and we remind you before your time runs out.' },
+    { q: 'What if I pay early?', a: 'Nothing is lost. Paying early adds 30 days to the end of your current free or paid month.' },
+    { q: 'Why does the price depend on my business type?', a: 'Different kinds of businesses get different value from being listed. Food sellers pay the least so small traders can join easily.' },
   ];
 
-  const handlePlanSelect = (plan) => {
-    setSelectedPlan(plan.id);
-    Alert.alert(
-      'Plan Selected',
-      `You've selected the ${plan.name} plan (${plan.price}/${plan.period}). Would you like to proceed with registration?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Proceed', onPress: () => handleProceed(plan) },
-      ]
-    );
+  const toggleFaq = (i) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setOpenFaq(openFaq === i ? -1 : i);
   };
-
-  const handleProceed = (plan) => {
-    Alert.alert(
-      'Registration Required',
-      'Please complete your business registration first to activate this plan.',
-      [{ text: 'OK' }]
-    );
-  };
-
-  const renderPlanCard = (plan) => (
-    <TouchableOpacity
-      key={plan.id}
-      style={[
-        styles.planCard,
-        plan.badge && styles.featuredPlanCard,
-        selectedPlan === plan.id && styles.selectedPlanCard
-      ]}
-      onPress={() => handlePlanSelect(plan)}
-    >
-      {plan.badge && (
-        <View style={styles.planBadge}>
-          <Text style={styles.planBadgeText}>{plan.badge}</Text>
-        </View>
-      )}
-      
-      <Text style={styles.planName}>{plan.name}</Text>
-      <Text style={styles.planPrice}>{plan.price}</Text>
-      <Text style={styles.planPeriod}>{plan.period}</Text>
-      <Text style={styles.planDescription}>{plan.description}</Text>
-      
-      <View style={styles.planFeatures}>
-        {plan.features.map((feature, index) => (
-          <View key={index} style={styles.featureRow}>
-            <View style={[
-              styles.featureIcon,
-              feature.included ? styles.featureIncluded : styles.featureExcluded
-            ]}>
-              <Ionicons 
-                name={feature.included ? 'checkmark' : 'close'} 
-                size={12} 
-                color={feature.included ? '#fff' : '#fff'} 
-              />
-            </View>
-            <Text style={[
-              styles.featureText,
-              !feature.included && styles.featureExcludedText
-            ]}>
-              {feature.text}
-            </Text>
-          </View>
-        ))}
-      </View>
-      
-      <TouchableOpacity style={[
-        styles.planButton,
-        plan.badge && styles.planButtonPrimary,
-        selectedPlan === plan.id && styles.planButtonSelected
-      ]}>
-        <Text style={[
-          styles.planButtonText,
-          plan.badge && styles.planButtonTextPrimary,
-          selectedPlan === plan.id && styles.planButtonTextSelected
-        ]}>
-          {selectedPlan === plan.id ? 'Selected' : 'Get started'}
-        </Text>
-      </TouchableOpacity>
-    </TouchableOpacity>
-  );
-
-  const renderFAQ = (faq, index) => (
-    <View key={index} style={styles.faqCard}>
-      <Text style={styles.faqQuestion}>{faq.question}</Text>
-      <Text style={styles.faqAnswer}>{faq.answer}</Text>
-    </View>
-  );
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header */}
-      <LinearGradient
-        colors={['#1B4F72', '#2E86C1']}
-        style={styles.headerSection}
-      >
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Simple, affordable plans</Text>
-          <Text style={styles.headerSubtitle}>
-            Register free. Then choose the plan that fits your business. Cancel anytime.
+    <View style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}>
+        <View style={styles.intro}>
+          <Badge label={`First ${freeDays} days free`} tone="success" icon="gift-outline" />
+          <Text style={[type.h1, { color: colors.text, marginTop: spacing.md }]}>Simple pricing for every business</Text>
+          <Text style={[type.body, { color: colors.textMuted, marginTop: spacing.xs }]}>
+            Start free for a month. After that, pay a small monthly amount based on your type of business{lowest ? `, from GHS ${lowest}` : ''}.
           </Text>
         </View>
-      </LinearGradient>
 
-      {/* Pricing Plans */}
-      <View style={styles.plansSection}>
-        <Text style={styles.sectionTitle}>Choose your plan</Text>
-        {plans.map(renderPlanCard)}
-      </View>
+        {/* How it works */}
+        <View style={styles.section}>
+          <SectionHeader title="How it works" />
+          <Card padded={false}>
+            {steps.map((s, i) => (
+              <View key={s.title} style={[styles.step, i > 0 && styles.divider]}>
+                <View style={styles.stepNum}>
+                  <Text style={[type.smallStrong, { color: colors.onPrimary }]}>{i + 1}</Text>
+                </View>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={[type.title, { color: colors.text }]}>{s.title}</Text>
+                  <Text style={[type.small, { color: colors.textMuted, marginTop: 2 }]}>{s.text}</Text>
+                </View>
+                <Ionicons name={s.icon} size={20} color={colors.primary} />
+              </View>
+            ))}
+          </Card>
+        </View>
 
-      {/* Features Comparison */}
-      <View style={styles.comparisonSection}>
-        <Text style={styles.sectionTitle}>Compare all features</Text>
-        <View style={styles.comparisonTable}>
-          <View style={styles.comparisonHeader}>
-            <Text style={styles.comparisonFeature}>Features</Text>
-            <Text style={styles.comparisonPlan}>Basic</Text>
-            <Text style={styles.comparisonPlan}>Standard</Text>
-            <Text style={styles.comparisonPlan}>Premium</Text>
-          </View>
-          
-          {[
-            'Product listings',
-            'Mobile Money',
-            'Analytics',
-            'Priority ranking',
-            'Homepage placement',
-            'Dedicated support'
-          ].map((feature, index) => (
-            <View key={index} style={styles.comparisonRow}>
-              <Text style={styles.comparisonFeature}>{feature}</Text>
-              <View style={styles.comparisonCell}>
-                <Ionicons 
-                  name={index < 2 ? 'checkmark' : 'close'} 
-                  size={16} 
-                  color={index < 2 ? '#3B6D11' : '#A32D2D'} 
-                />
-              </View>
-              <View style={styles.comparisonCell}>
-                <Ionicons 
-                  name={index < 5 ? 'checkmark' : 'close'} 
-                  size={16} 
-                  color={index < 5 ? '#3B6D11' : '#A32D2D'} 
-                />
-              </View>
-              <View style={styles.comparisonCell}>
-                <Ionicons name="checkmark" size={16} color="#3B6D11" />
+        {/* Prices */}
+        <View style={styles.section}>
+          <SectionHeader title="Monthly price after the free month" />
+          <Text style={[type.small, { color: colors.textMuted, marginTop: -spacing.xs, marginBottom: spacing.md }]}>
+            Your price depends on your type of business. Pay with MoMo, one month at a time.
+          </Text>
+          {!config && !error ? (
+            <Card><ActivityIndicator color={colors.primary} style={{ margin: spacing.lg }} /></Card>
+          ) : tiers.length === 0 ? (
+            <Card>
+              <Text style={[type.small, { color: colors.textMuted }]}>Prices could not be loaded. Check your connection and try again.</Text>
+            </Card>
+          ) : (
+            <View style={{ gap: spacing.md }}>
+              {tiers.map((tier, i) => {
+                const tone = TIER_TONES[Math.min(i, TIER_TONES.length - 1)];
+                return (
+                  <View key={tier.price} style={styles.tierShadow}>
+                    <View style={styles.tier}>
+                      <LinearGradient colors={tone.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.tierHead}>
+                        <View style={{ flex: 1, minWidth: 0 }}>
+                          <Text style={[type.overline, { color: 'rgba(255,255,255,0.8)' }]}>
+                            {tier.cats.length} business {tier.cats.length === 1 ? 'type' : 'types'}
+                          </Text>
+                          <View style={styles.tierPriceRow}>
+                            <Text style={styles.tierCurrency}>GHS</Text>
+                            <Text style={styles.tierPrice}>{tier.price}</Text>
+                            <Text style={styles.tierPer}>/ month</Text>
+                          </View>
+                        </View>
+                        {i === 0 ? (
+                          <View style={styles.lowest}>
+                            <Ionicons name="leaf" size={12} color={colors.success} />
+                            <Text style={[type.caption, { color: colors.success, fontWeight: '800' }]}>Lowest</Text>
+                          </View>
+                        ) : null}
+                      </LinearGradient>
+                      <View style={styles.tierBody}>
+                        {tier.cats.map((c) => {
+                          const cat = getCategory(c.id);
+                          return (
+                            <View key={c.id} style={[styles.catTag, { backgroundColor: cat.tint || colors.primarySoft }]}>
+                              <Ionicons name={CATEGORY_ICONS[c.id] || 'business-outline'} size={15} color={cat.color || colors.primary} />
+                              <Text style={[type.smallStrong, { color: cat.color || colors.primary }]}>{c.name}</Text>
+                            </View>
+                          );
+                        })}
+                      </View>
+                    </View>
+                  </View>
+                );
+              })}
+              <View style={styles.tierNote}>
+                <Ionicons name="information-circle-outline" size={16} color={colors.textMuted} />
+                <Text style={[type.caption, { color: colors.textMuted, flex: 1 }]}>
+                  Your business type is the category you chose when you registered. First {freeDays} days are free for everyone.
+                </Text>
               </View>
             </View>
-          ))}
+          )}
         </View>
-      </View>
 
-      {/* FAQ Section */}
-      <View style={styles.faqSection}>
-        <Text style={styles.sectionTitle}>Frequently Asked Questions</Text>
-        {faqs.map(renderFAQ)}
-      </View>
-
-      {/* CTA Section */}
-      <View style={styles.ctaSection}>
-        <View style={styles.ctaCard}>
-          <Text style={styles.ctaTitle}>Ready to get started?</Text>
-          <Text style={styles.ctaSubtitle}>
-            Join thousands of African businesses growing with VENDORA AFRICA
-          </Text>
-          <TouchableOpacity style={styles.ctaButton}>
-            <Text style={styles.ctaButtonText}>Start free registration</Text>
-          </TouchableOpacity>
-          <Text style={styles.ctaNote}>
-            No credit card required. Choose your plan after registration.
-          </Text>
+        {/* Included */}
+        <View style={styles.section}>
+          <SectionHeader title="Everything included" />
+          <Card>
+            {INCLUDED.map((t) => (
+              <View key={t} style={styles.included}>
+                <Ionicons name="checkmark-circle" size={18} color={colors.success} />
+                <Text style={[type.small, { color: colors.text, flex: 1 }]}>{t}</Text>
+              </View>
+            ))}
+          </Card>
         </View>
+
+        {/* FAQ */}
+        <View style={styles.section}>
+          <SectionHeader title="Frequently asked questions" />
+          <Card padded={false}>
+            {faqs.map((f, i) => {
+              const open = openFaq === i;
+              return (
+                <Touchable
+                  key={f.q}
+                  onPress={() => toggleFaq(i)}
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: open }}
+                  style={[styles.faq, i < faqs.length - 1 && styles.faqBorder]}
+                >
+                  <View style={styles.faqHead}>
+                    <Text style={[type.title, { color: colors.text, flex: 1 }]}>{f.q}</Text>
+                    <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textMuted} />
+                  </View>
+                  {open ? <Text style={[type.small, { color: colors.textSecondary, marginTop: spacing.sm }]}>{f.a}</Text> : null}
+                </Touchable>
+              );
+            })}
+          </Card>
+        </View>
+      </ScrollView>
+
+      {/* Sticky CTA */}
+      <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
+        {ownsBusiness ? (
+          <>
+            <View style={{ flexShrink: 1 }}>
+              <Text style={[type.caption, { color: colors.textMuted }]}>Your business</Text>
+              <Text style={[type.title, { color: colors.text }]}>Pay monthly</Text>
+            </View>
+            <Button title="Pay with MoMo" icon="wallet-outline" onPress={() => navigation.navigate('Payment')} fullWidth={false} style={{ flex: 1 }} />
+          </>
+        ) : (
+          <>
+            <View style={{ flexShrink: 1 }}>
+              <Text style={[type.caption, { color: colors.textMuted }]}>Start today</Text>
+              <Text style={[type.title, { color: colors.success }]}>{freeDays} days free</Text>
+            </View>
+            <Button title="Register free" icon="add-circle-outline" onPress={() => navigation.navigate('Main', { screen: 'Register' })} fullWidth={false} style={{ flex: 1 }} />
+          </>
+        )}
       </View>
-    </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8fafc',
-  },
-  headerSection: {
-    paddingTop: 60,
-    paddingBottom: 40,
-    paddingHorizontal: 20,
-  },
-  headerContent: {
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    color: '#B5D4F4',
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  plansSection: {
-    padding: 20,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1B4F72',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  planCard: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 24,
-    marginBottom: 20,
-    borderWidth: 2,
-    borderColor: '#e2e8f0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  featuredPlanCard: {
-    borderColor: '#2E86C1',
-    transform: [{ scale: 1.02 }],
-  },
-  selectedPlanCard: {
-    borderColor: '#1B4F72',
-    backgroundColor: '#f0f8ff',
-  },
-  planBadge: {
+  container: { flex: 1, backgroundColor: colors.background },
+  intro: { paddingHorizontal: spacing.gutter, paddingTop: spacing.xl },
+  section: { paddingHorizontal: spacing.gutter, marginTop: spacing.xxl },
+  divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+  step: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md, padding: spacing.lg },
+  stepNum: { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
+  // Price tier cards: outer layer keeps the shadow, inner layer clips the gradient (iOS)
+  tierShadow: { borderRadius: radius.lg, backgroundColor: colors.surface, ...shadow.md },
+  tier: { borderRadius: radius.lg, overflow: 'hidden', borderWidth: 1, borderColor: colors.cardBorder, backgroundColor: colors.surface },
+  tierHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
+  tierPriceRow: { flexDirection: 'row', alignItems: 'baseline', gap: 4, marginTop: 2 },
+  tierCurrency: { fontSize: 15, fontWeight: '800', color: 'rgba(255,255,255,0.85)' },
+  tierPrice: { fontSize: 34, lineHeight: 40, fontWeight: '800', color: '#FFFFFF', letterSpacing: -1 },
+  tierPer: { fontSize: 14, fontWeight: '600', color: 'rgba(255,255,255,0.85)' },
+  lowest: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#FFFFFF', paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.pill },
+  tierBody: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, padding: spacing.md },
+  catTag: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: spacing.md, paddingVertical: 7, borderRadius: radius.pill, maxWidth: '100%' },
+  tierNote: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs, paddingHorizontal: spacing.xs },
+  included: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 6 },
+  faq: { padding: spacing.lg },
+  faqBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+  faqHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  bottomBar: {
     position: 'absolute',
-    top: -12,
-    left: '50%',
-    transform: [{ translateX: -50 }],
-    backgroundColor: '#2E86C1',
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  planBadgeText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-  },
-  planName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1B4F72',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  planPrice: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#1B4F72',
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  planPeriod: {
-    fontSize: 16,
-    color: '#64748b',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  planDescription: {
-    fontSize: 14,
-    color: '#64748b',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  planFeatures: {
-    marginBottom: 24,
-  },
-  featureRow: {
+    left: 0,
+    right: 0,
+    bottom: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-  },
-  featureIcon: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  featureIncluded: {
-    backgroundColor: '#EAF3DE',
-  },
-  featureExcluded: {
-    backgroundColor: '#FCEBEB',
-  },
-  featureText: {
-    fontSize: 14,
-    color: '#0f172a',
-    flex: 1,
-  },
-  featureExcludedText: {
-    color: '#94a3b8',
-  },
-  planButton: {
-    backgroundColor: '#f8fafc',
-    borderWidth: 2,
-    borderColor: '#1B4F72',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  planButtonPrimary: {
-    backgroundColor: '#1B4F72',
-  },
-  planButtonSelected: {
-    backgroundColor: '#1B4F72',
-  },
-  planButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1B4F72',
-  },
-  planButtonTextPrimary: {
-    color: '#fff',
-  },
-  planButtonTextSelected: {
-    color: '#fff',
-  },
-  comparisonSection: {
-    padding: 20,
-    backgroundColor: '#fff',
-    margin: 20,
-    borderRadius: 20,
-  },
-  comparisonTable: {
-    marginTop: 20,
-  },
-  comparisonHeader: {
-    flexDirection: 'row',
-    borderBottomWidth: 2,
-    borderBottomColor: '#e2e8f0',
-    paddingBottom: 12,
-    marginBottom: 12,
-  },
-  comparisonFeature: {
-    flex: 2,
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1B4F72',
-  },
-  comparisonPlan: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1B4F72',
-    textAlign: 'center',
-  },
-  comparisonRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-    paddingVertical: 12,
-  },
-  comparisonCell: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  faqSection: {
-    padding: 20,
-  },
-  faqCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  faqQuestion: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1B4F72',
-    marginBottom: 8,
-  },
-  faqAnswer: {
-    fontSize: 14,
-    color: '#64748b',
-    lineHeight: 20,
-  },
-  ctaSection: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-  ctaCard: {
-    backgroundColor: '#1B4F72',
-    borderRadius: 20,
-    padding: 32,
-    alignItems: 'center',
-  },
-  ctaTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  ctaSubtitle: {
-    fontSize: 16,
-    color: '#B5D4F4',
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 24,
-  },
-  ctaButton: {
-    backgroundColor: '#fff',
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 12,
-    marginBottom: 16,
-  },
-  ctaButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1B4F72',
-  },
-  ctaNote: {
-    fontSize: 12,
-    color: '#B5D4F4',
-    textAlign: 'center',
+    gap: spacing.lg,
+    paddingHorizontal: spacing.gutter,
+    paddingTop: spacing.md,
+    backgroundColor: colors.surface,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+    ...shadow.lg,
   },
 });
 

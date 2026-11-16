@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light only">
+  <title>Browse businesses — Vendora Africa</title>
+  <meta name="description" content="Browse approved local businesses on Vendora Africa by category or city.">
+  <link rel="icon" href="/assets/img/favicon.png">
+  <link rel="stylesheet" href="/assets/css/site.css">
+</head>
+<body>
+  <section class="page-hero">
+    <div class="wrap">
+      <h1>Browse businesses</h1>
+      <p>Every business here has been checked by the Vendora team.</p>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:28px">
+    <div class="wrap">
+      <form class="toolbar" id="searchForm" role="search">
+        <div class="search"><svg class="search-ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M15.5 15.5 20 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><label class="sr-only" for="q">Search</label><input id="q" type="search" placeholder="Search businesses"></div>
+        <button class="btn btn-primary" type="submit">Search</button>
+      </form>
+      <div class="bcats" id="chips" role="radiogroup" aria-label="Category"></div>
+      <p class="muted small" id="count"></p>
+      <div id="results" class="grid grid-3"></div>
+      <div class="center" style="margin-top:24px"><button class="btn btn-outline" id="more" hidden>Load more</button></div>
+    </div>
+  </section>
+
+  <script src="/assets/js/common.js"></script>
+  <script src="/assets/js/browse.js"></script>
+</body>
+</html>

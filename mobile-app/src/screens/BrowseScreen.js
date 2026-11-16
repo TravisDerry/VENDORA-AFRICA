@@ -1,397 +1,236 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  ScrollView, 
-  TouchableOpacity, 
-  StyleSheet, 
-  FlatList,
-  TextInput,
-  Dimensions,
-  ActivityIndicator
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+// Explore: businesses loaded from the server 20 at a time. Search and category filtering happen on
+// the server, so this works the same with 10 businesses or 10,000. Scrolling down loads the next page.
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { View, Text, ScrollView, FlatList, StyleSheet, RefreshControl, ActivityIndicator } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { colors, spacing, radius, type } from '../theme';
+import { SearchBar, Chip, EmptyState, IconButton, useStatusBar } from '../components/ui';
+import { BusinessCard, BusinessRow } from '../components/BusinessCard';
+import { CATEGORIES } from '../data/categories';
+import { API_BASE_URL } from '../config';
+import { normalizeBusiness } from '../utils/businesses';
 
-const { width } = Dimensions.get('window');
+const PAGE_SIZE = 20;
+const SEARCH_DELAY_MS = 400;
 
-const BrowseScreen = ({ route }) => {
+const BrowseScreen = () => {
   const navigation = useNavigation();
-  const { businesses } = route.params;
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filteredBusinesses, setFilteredBusinesses] = useState(businesses);
-  const [loading, setLoading] = useState(false);
+  const route = useRoute();
+  const insets = useSafeAreaInsets();
+  useStatusBar('dark');
 
-  const categories = [
-    { id: 'all', name: 'All categories', icon: 'grid-outline' },
-    { id: 'phones', name: 'Phones & electronics', icon: 'phone-portrait-outline' },
-    { id: 'cosmetics', name: 'Cosmetics & beauty', icon: 'sparkles-outline' },
-    { id: 'fashion', name: 'Fashion & clothing', icon: 'shirt-outline' },
-    { id: 'food', name: 'Food & grocery', icon: 'restaurant-outline' },
-    { id: 'hardware', name: 'Hardware', icon: 'build-outline' },
-  ];
+  const [selectedCategory, setSelectedCategory] = useState(route?.params?.category || 'all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [layout, setLayout] = useState('list');
+
+  const [items, setItems] = useState([]);
+  const [page, setPage] = useState(0); // last page loaded
+  const [pages, setPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [status, setStatus] = useState('loading'); // loading | ok | error
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const requestId = useRef(0); // ignore answers to searches the user has already changed
+
+  // Category chosen on the Home screen
+  useEffect(() => {
+    if (route?.params?.category) setSelectedCategory(route.params.category);
+  }, [route?.params?.category]);
+
+  // Wait until the user stops typing before searching
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(searchQuery.trim()), SEARCH_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  const fetchPage = useCallback(async (pageToLoad) => {
+    const params = new URLSearchParams({ page: String(pageToLoad), limit: String(PAGE_SIZE) });
+    if (selectedCategory !== 'all') params.set('category', selectedCategory);
+    if (debouncedQuery) params.set('search', debouncedQuery.slice(0, 100));
+    const res = await fetch(`${API_BASE_URL}/api/businesses?${params.toString()}`);
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+    return res.json();
+  }, [selectedCategory, debouncedQuery]);
+
+  // First page (and whenever the search or category changes)
+  const loadFirst = useCallback(async () => {
+    const id = ++requestId.current;
+    try {
+      const json = await fetchPage(1);
+      if (id !== requestId.current) return;
+      setItems((json.businesses || []).map((b, i) => normalizeBusiness(b, i)));
+      setPage(1);
+      setPages(json.pagination?.pages || 1);
+      setTotal(json.pagination?.total ?? (json.businesses || []).length);
+      setStatus('ok');
+    } catch (e) {
+      // A failed pull-to-refresh keeps the list already shown; a failed new search shows the error
+      if (id === requestId.current) setStatus((s) => (s === 'ok' ? 'ok' : 'error'));
+    }
+  }, [fetchPage]);
 
   useEffect(() => {
-    filterBusinesses();
-  }, [selectedCategory, searchQuery]);
+    setStatus('loading');
+    loadFirst();
+  }, [loadFirst]);
 
-  const filterBusinesses = () => {
-    setLoading(true);
-    setTimeout(() => {
-      let filtered = businesses;
-
-      // Filter by category
-      if (selectedCategory !== 'all') {
-        filtered = filtered.filter(b => b.category === selectedCategory);
-      }
-
-      // Filter by search query
-      if (searchQuery) {
-        filtered = filtered.filter(b => 
-          b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          b.type.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-      }
-
-      setFilteredBusinesses(filtered);
-      setLoading(false);
-    }, 300);
+  const loadMore = async () => {
+    if (loadingMore || status !== 'ok' || page >= pages) return;
+    const id = requestId.current;
+    setLoadingMore(true);
+    try {
+      const json = await fetchPage(page + 1);
+      if (id !== requestId.current) return;
+      setItems((cur) => {
+        const seen = new Set(cur.map((b) => String(b.id)));
+        const next = (json.businesses || []).map((b, i) => normalizeBusiness(b, cur.length + i)).filter((b) => !seen.has(String(b.id)));
+        return [...cur, ...next];
+      });
+      setPage(page + 1);
+      setPages(json.pagination?.pages || pages);
+    } catch (e) {
+      // try again when the user scrolls again
+    } finally {
+      setLoadingMore(false);
+    }
   };
 
-  const handleCategoryPress = (categoryId) => {
-    setSelectedCategory(categoryId);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadFirst();
+    setRefreshing(false);
+  }, [loadFirst]);
+
+  const openBusiness = (business) => navigation.navigate('BusinessDetail', { business });
+
+  const resetFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('all');
   };
 
-  const handleBusinessPress = (business) => {
-    navigation.navigate('BusinessDetail', { business });
-  };
+  const isGrid = layout === 'grid';
+  const filtering = selectedCategory !== 'all' || !!debouncedQuery;
 
-  const renderBusinessItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.businessCard}
-      onPress={() => handleBusinessPress(item)}
-    >
-      <View style={styles.businessHeader}>
-        <View style={styles.businessEmoji}>
-          <Text style={styles.emojiText}>{getCategoryEmoji(item.category)}</Text>
-        </View>
-        <View style={styles.businessBadge}>
-          <Text style={styles.badgeText}>{item.badge}</Text>
-        </View>
-      </View>
-      <View style={styles.businessBody}>
-        <Text style={styles.businessName}>{item.name}</Text>
-        <Text style={styles.businessType}>{item.type}</Text>
-        <View style={styles.businessLocation}>
-          <Ionicons name="location-outline" size={14} color="#64748b" />
-          <Text style={styles.locationText}>{item.location}</Text>
-        </View>
-        <View style={styles.businessMeta}>
-          <View style={styles.rating}>
-            <Ionicons name="star" size={14} color="#BA7517" />
-            <Text style={styles.ratingText}>{item.rating}</Text>
-          </View>
-          <View style={styles.verifiedBadge}>
-            <Ionicons name="checkmark-circle" size={14} color="#1B4F72" />
-            <Text style={styles.verifiedText}>Verified</Text>
-          </View>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const renderCategoryItem = (category) => (
-    <TouchableOpacity
-      key={category.id}
-      style={[
-        styles.categoryPill,
-        selectedCategory === category.id && styles.categoryPillActive
-      ]}
-      onPress={() => handleCategoryPress(category.id)}
-    >
-      <Ionicons 
-        name={category.icon} 
-        size={16} 
-        color={selectedCategory === category.id ? '#1B4F72' : '#64748b'} 
+  const empty =
+    status === 'loading' ? (
+      <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.xxl }} />
+    ) : status === 'error' ? (
+      <EmptyState
+        icon="cloud-offline-outline"
+        title="Can't reach Vendora"
+        message="Check your internet connection, then pull down to refresh."
+        actionLabel="Try again"
+        onAction={() => { setStatus('loading'); loadFirst(); }}
       />
-      <Text style={[
-        styles.categoryText,
-        selectedCategory === category.id && styles.categoryTextActive
-      ]}>
-        {category.name}
-      </Text>
-    </TouchableOpacity>
-  );
+    ) : filtering ? (
+      <EmptyState
+        icon="search"
+        title="No businesses found"
+        message="Try a different search term or category."
+        actionLabel="Clear filters"
+        onAction={resetFilters}
+      />
+    ) : (
+      <EmptyState
+        icon="storefront-outline"
+        title="No businesses yet"
+        message="Vendora Africa is just getting started. Own a business? List it free for your first month."
+        actionLabel="List your business"
+        onAction={() => navigation.navigate('Register')}
+      />
+    );
 
   return (
     <View style={styles.container}>
-      {/* Search Bar */}
-      <View style={styles.searchSection}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search-outline" size={20} color="#64748b" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search businesses..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholderTextColor="#64748b"
+      <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
+        <View style={styles.titleRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={[type.h1, { color: colors.text }]}>Explore</Text>
+            <Text style={[type.small, { color: colors.textMuted }]}>Businesses across Ghana</Text>
+          </View>
+          <IconButton
+            icon={isGrid ? 'list' : 'grid-outline'}
+            background={colors.surfaceAlt}
+            color={colors.text}
+            size={20}
+            accessibilityLabel={isGrid ? 'Show as list' : 'Show as grid'}
+            onPress={() => setLayout(isGrid ? 'list' : 'grid')}
           />
-          {searchQuery ? (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle-outline" size={20} color="#64748b" />
-            </TouchableOpacity>
-          ) : null}
         </View>
-      </View>
-
-      {/* Categories */}
-      <View style={styles.categoriesSection}>
-        <ScrollView 
-          horizontal 
+        <SearchBar value={searchQuery} onChangeText={setSearchQuery} />
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoriesContainer}
+          contentContainerStyle={styles.chips}
+          style={styles.chipScroller}
         >
-          {categories.map(renderCategoryItem)}
+          {CATEGORIES.map((cat) => (
+            <Chip
+              key={cat.id}
+              label={cat.name}
+              icon={cat.id === 'all' ? undefined : cat.icon}
+              selected={selectedCategory === cat.id}
+              onPress={() => setSelectedCategory(cat.id)}
+            />
+          ))}
         </ScrollView>
       </View>
 
-      {/* Results Count */}
-      <View style={styles.resultsSection}>
-        <Text style={styles.resultsText}>
-          {filteredBusinesses.length} businesses found
-        </Text>
-      </View>
-
-      {/* Businesses List */}
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#1B4F72" />
-          <Text style={styles.loadingText}>Loading businesses...</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={filteredBusinesses}
-          renderItem={renderBusinessItem}
-          keyExtractor={(item) => item.id.toString()}
-          numColumns={2}
-          contentContainerStyle={styles.businessesList}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Ionicons name="search-outline" size={48} color="#64748b" />
-              <Text style={styles.emptyText}>No businesses found</Text>
-              <Text style={styles.emptySubtext}>
-                Try adjusting your search or filters
-              </Text>
+      <FlatList
+        key={layout}
+        data={status === 'ok' ? items : []}
+        numColumns={isGrid ? 2 : 1}
+        keyExtractor={(item) => String(item.id)}
+        columnWrapperStyle={isGrid ? { gap: spacing.md } : undefined}
+        renderItem={({ item }) =>
+          isGrid ? (
+            <View style={{ flex: 1 / 2 }}>
+              <BusinessCard business={item} onPress={() => openBusiness(item)} />
             </View>
-          }
-        />
-      )}
+          ) : (
+            <BusinessRow business={item} onPress={() => openBusiness(item)} />
+          )
+        }
+        ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
+        ListHeaderComponent={
+          status === 'ok' && items.length > 0 ? (
+            <Text style={[type.smallStrong, styles.count]}>
+              {total} {total === 1 ? 'business' : 'businesses'}
+            </Text>
+          ) : null
+        }
+        ListEmptyComponent={empty}
+        ListFooterComponent={loadingMore ? <ActivityIndicator color={colors.primary} style={{ marginVertical: spacing.lg }} /> : null}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        contentContainerStyle={styles.list}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />}
+      />
     </View>
   );
 };
 
-const getCategoryEmoji = (category) => {
-  const emojis = {
-    phones: 'Mobile phones, laptops, accessories',
-    cosmetics: 'Makeup, skincare, beauty products',
-    fashion: 'Traditional and modern clothing',
-    food: 'Local dishes, groceries',
-    hardware: 'Tools, building materials'
-  };
-  return emojis[category] || 'General business';
-};
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8fafc',
+  container: { flex: 1, backgroundColor: colors.background },
+  header: {
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.gutter,
+    paddingBottom: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+    borderBottomLeftRadius: radius.xl,
+    borderBottomRightRadius: radius.xl,
   },
-  searchSection: {
-    padding: 20,
-    paddingBottom: 10,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f8fafc',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: 12,
-    fontSize: 16,
-    color: '#0f172a',
-  },
-  categoriesSection: {
-    backgroundColor: '#fff',
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-  },
-  categoriesContainer: {
-    paddingHorizontal: 20,
-  },
-  categoryPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: '#f8fafc',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    marginRight: 12,
-  },
-  categoryPillActive: {
-    backgroundColor: '#E6F1FB',
-    borderColor: '#2E86C1',
-  },
-  categoryText: {
-    fontSize: 12,
-    color: '#64748b',
-    marginLeft: 6,
-    fontWeight: '500',
-  },
-  categoryTextActive: {
-    color: '#1B4F72',
-  },
-  resultsSection: {
-    padding: 20,
-    paddingTop: 16,
-  },
-  resultsText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1B4F72',
-  },
-  businessesList: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  businessCard: {
-    width: (width - 60) / 2,
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    overflow: 'hidden',
-    marginHorizontal: 5,
-  },
-  businessHeader: {
-    height: 80,
-    backgroundColor: '#E6F1FB',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  businessEmoji: {
-    fontSize: 24,
-  },
-  emojiText: {
-    fontSize: 32,
-  },
-  businessBadge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#1B4F72',
-  },
-  businessBody: {
-    padding: 16,
-  },
-  businessName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1B4F72',
-    marginBottom: 4,
-  },
-  businessType: {
-    fontSize: 12,
-    color: '#64748b',
-    marginBottom: 8,
-  },
-  businessLocation: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  locationText: {
-    fontSize: 11,
-    color: '#64748b',
-    marginLeft: 4,
-  },
-  businessMeta: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  rating: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  ratingText: {
-    fontSize: 12,
-    color: '#BA7517',
-    marginLeft: 4,
-    fontWeight: '600',
-  },
-  verifiedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  verifiedText: {
-    fontSize: 10,
-    color: '#1B4F72',
-    marginLeft: 4,
-    fontWeight: '500',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#64748b',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 60,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#64748b',
-    marginTop: 16,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#94a3b8',
-    marginTop: 8,
-    textAlign: 'center',
-  },
+  titleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.lg },
+  chipScroller: { marginTop: spacing.md, marginHorizontal: -spacing.gutter },
+  chips: { gap: spacing.sm, paddingHorizontal: spacing.gutter },
+  count: { color: colors.textSecondary, marginBottom: spacing.md },
+  list: { padding: spacing.gutter, paddingBottom: spacing.xxxl, flexGrow: 1 },
 });
 
 export default BrowseScreen;
