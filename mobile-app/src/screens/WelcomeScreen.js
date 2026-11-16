@@ -246,19 +246,21 @@ const WelcomeScreen = ({ navigation }) => {
           </Animated.View>
         </View>
 
-        <Animated.View
-          pointerEvents={isLast ? 'auto' : 'none'}
-          style={[
-            styles.actions,
-            compact && { marginTop: spacing.lg },
-            { opacity: ctaIn, transform: [{ translateY: ctaIn.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }] },
-          ]}
-        >
-          <Animated.View style={[{ flex: 1 }, buttonPulse]}>
-            <Button title="Start exploring" icon="compass-outline" onPress={finish} />
+        {/* Only on the last slide, so the first slides have no empty gap */}
+        {isLast ? (
+          <Animated.View
+            style={[
+              styles.actions,
+              compact && { marginTop: spacing.lg },
+              { opacity: ctaIn, transform: [{ translateY: ctaIn.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }] },
+            ]}
+          >
+            <Animated.View style={[{ flex: 1 }, buttonPulse]}>
+              <Button title="Start exploring" icon="compass-outline" onPress={finish} />
+            </Animated.View>
           </Animated.View>
-        </Animated.View>
-        <Touchable onPress={() => enterApp('Register')} accessibilityRole="button" style={styles.secondary}>
+        ) : null}
+        <Touchable onPress={() => enterApp('Register')} accessibilityRole="button" style={[styles.secondary, !isLast && { marginTop: spacing.md }]}>
           <Text style={[type.smallStrong, { color: colors.primary }]}>Own a business? List it free</Text>
           <Ionicons name="chevron-forward" size={14} color={colors.primary} />
         </Touchable>
