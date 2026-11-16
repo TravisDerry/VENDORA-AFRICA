@@ -17,7 +17,6 @@ const SLIDES = [
     aspect: 1080 / 721,
     focus: { x: 0.6, y: 0.55 },
     caption: 'Fruit market, Dar es Salaam, Tanzania',
-    icon: 'business',
     eyebrow: 'Discover',
     title: 'Every business.', highlight: 'Every corner of Africa.',
     body: 'Find local sellers near you, from market stalls to retail stores.',
@@ -29,7 +28,6 @@ const SLIDES = [
     aspect: 1080 / 608,
     focus: { x: 0.56, y: 0.4 },
     caption: 'Pay the way you already do',
-    icon: 'wallet',
     eyebrow: 'Buy with confidence',
     title: 'Contact sellers and', highlight: 'pay with Mobile Money',
     body: 'Call, message or get directions in one tap. MTN MoMo, Telecel Cash and AirtelTigo.',
@@ -41,7 +39,6 @@ const SLIDES = [
     aspect: 1080 / 721,
     focus: { x: 0.5, y: 0.4 },
     caption: 'Built for African entrepreneurs',
-    icon: 'trending-up',
     eyebrow: 'Grow your business',
     title: 'List your business', highlight: 'free in minutes',
     body: 'Reach new customers online, manage your stock and track your sales.',
@@ -148,8 +145,8 @@ const WelcomeScreen = ({ navigation }) => {
   const photoMotion = {
     opacity: fade,
     transform: [
-      { scale: zoom.interpolate({ inputRange: [0, 1], outputRange: [1.04, 1.16] }) },
-      { translateX: zoom.interpolate({ inputRange: [0, 1], outputRange: [index % 2 ? 10 : -10, index % 2 ? -10 : 10] }) },
+      { scale: zoom.interpolate({ inputRange: [0, 1], outputRange: [1.08, 1.18] }) },
+      { translateX: zoom.interpolate({ inputRange: [0, 1], outputRange: [index % 2 ? 6 : -6, index % 2 ? -6 : 6] }) },
     ],
   };
   // Text rises in after each slide change; the headline leads, the rest follows
@@ -223,26 +220,35 @@ const WelcomeScreen = ({ navigation }) => {
 
       {/* Sheet */}
       <View style={[styles.sheet, compact && styles.sheetCompact, { paddingBottom: Math.max(insets.bottom, spacing.md) + spacing.xs }]}>
+        <View style={styles.handle} />
         <View>
-          <Animated.View style={[styles.eyebrow, rise(6)]}>
-            <Ionicons name={slide.icon} size={13} color={colors.primary} />
-            <Text style={[type.overline, { color: colors.primary }]}>{slide.eyebrow}</Text>
+          {/* Label row: section name on the left, slide count on the right */}
+          <Animated.View style={[styles.labelRow, rise(6)]}>
+            <View style={styles.eyebrow}>
+              <View style={styles.eyebrowRule} />
+              <Text style={styles.eyebrowText}>{slide.eyebrow}</Text>
+            </View>
+            <Text style={styles.counter}>
+              <Text style={{ color: colors.text }}>{String(index + 1).padStart(2, '0')}</Text>
+              {` / ${String(SLIDES.length).padStart(2, '0')}`}
+            </Text>
           </Animated.View>
+
           <Animated.View style={rise(14)}>
             <Text style={[styles.title, compact && styles.titleCompact]}>{slide.title}</Text>
             <Text style={[styles.title, styles.highlight, compact && styles.titleCompact]}>{slide.highlight}</Text>
-            <View style={styles.titleRule} />
           </Animated.View>
+
           <Animated.View style={rise(22)}>
-          <Text style={[compact ? type.small : type.body, { color: colors.textSecondary, marginTop: spacing.md }]}>{slide.body}</Text>
-          <View style={[styles.points, compact && { marginTop: spacing.md }]}>
-            {slide.points.map((p) => (
-              <View key={p} style={styles.point}>
-                <Ionicons name="checkmark-circle" size={16} color={colors.success} />
-                <Text style={[type.smallStrong, { color: colors.text }]}>{p}</Text>
-              </View>
-            ))}
-          </View>
+            <Text style={[styles.bodyText, compact && styles.bodyCompact]}>{slide.body}</Text>
+            <View style={[styles.points, compact && { marginTop: spacing.md }]}>
+              {slide.points.map((p) => (
+                <View key={p} style={styles.point}>
+                  <View style={styles.pointDot} />
+                  <Text style={styles.pointText}>{p}</Text>
+                </View>
+              ))}
+            </View>
           </Animated.View>
         </View>
 
@@ -256,13 +262,24 @@ const WelcomeScreen = ({ navigation }) => {
             ]}
           >
             <Animated.View style={[{ flex: 1 }, buttonPulse]}>
-              <Button title="Start exploring" icon="compass-outline" onPress={finish} />
+              <Button title="Start exploring" onPress={finish} />
             </Animated.View>
           </Animated.View>
         ) : null}
-        <Touchable onPress={() => enterApp('Register')} accessibilityRole="button" style={[styles.secondary, !isLast && { marginTop: spacing.md }]}>
-          <Text style={[type.smallStrong, { color: colors.primary }]}>Own a business? List it free</Text>
-          <Ionicons name="chevron-forward" size={14} color={colors.primary} />
+        {/* Business owners can go straight to registering */}
+        <Touchable
+          onPress={() => enterApp('Register')}
+          accessibilityRole="button"
+          accessibilityLabel="Own a business? List it free"
+          style={[styles.ownerRow, compact && { marginTop: spacing.md }]}
+        >
+          <View style={styles.ownerAccent} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.ownerTitle}>Own a business?</Text>
+            <Text style={[type.caption, { color: colors.textMuted, marginTop: 2 }]}>List it free in a few minutes</Text>
+          </View>
+          <Text style={styles.ownerLink}>List now</Text>
+          <Ionicons name="chevron-forward" size={16} color={colors.primary} />
         </Touchable>
       </View>
 
@@ -318,27 +335,23 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderTopLeftRadius: radius.xxl,
     borderTopRightRadius: radius.xxl,
-    paddingHorizontal: spacing.gutter,
-    paddingTop: spacing.xxl,
+    paddingHorizontal: spacing.gutter + 4,
+    paddingTop: spacing.md,
     ...shadow.lg,
   },
-  sheetCompact: { paddingTop: spacing.xl },
+  sheetCompact: { paddingTop: spacing.sm },
+  handle: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: colors.border, marginBottom: spacing.xl },
+  labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
+  counter: { ...type.caption, color: colors.placeholder, letterSpacing: 1, fontVariant: ['tabular-nums'] },
   titleCompact: { fontSize: 19, lineHeight: 25 },
-  eyebrow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    alignSelf: 'flex-start',
-    backgroundColor: colors.primarySoft,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 5,
-    borderRadius: radius.pill,
-    marginBottom: spacing.md,
-  },
+  eyebrow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  eyebrowRule: { width: 20, height: 2, borderRadius: 1, backgroundColor: colors.accent },
+  eyebrowText: { ...type.caption, fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase', color: colors.primary },
   // Light, large headline; the second line is picked out in the brand blue
   title: { ...type.body, fontSize: 22, lineHeight: 29, fontWeight: '300', letterSpacing: -0.2, color: colors.text },
   highlight: { color: colors.primary, fontWeight: '400' },
-  titleRule: { width: 36, height: 3, borderRadius: 2, backgroundColor: colors.accent, marginTop: spacing.md },
+  bodyText: { ...type.body, color: colors.textSecondary, marginTop: spacing.md, maxWidth: 360 },
+  bodyCompact: { ...type.small, marginTop: spacing.sm },
   outro: { alignItems: 'center', justifyContent: 'center', gap: spacing.xl },
   outroRing: {
     width: 112, height: 112, borderRadius: 56,
@@ -349,17 +362,32 @@ const styles = StyleSheet.create({
   outroLogo: { width: 80, height: 80, borderRadius: 22 },
   outroTitle: { ...type.body, fontSize: 34, lineHeight: 40, fontWeight: '300', letterSpacing: 0.5, color: colors.onPrimary },
   outroSub: { ...type.body, color: colors.onPrimaryMuted, marginTop: spacing.xs },
-  points: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.lg, marginTop: spacing.lg },
-  point: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  actions: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.xxl },
-  secondary: {
+  points: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.lg },
+  point: {
+    flexDirection: 'row', alignItems: 'center', gap: 7,
+    paddingHorizontal: spacing.md, paddingVertical: 6,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border,
+  },
+  pointDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: colors.primary },
+  pointText: { ...type.caption, color: colors.text, fontWeight: '600', letterSpacing: 0.2 },
+  actions: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.xl },
+  ownerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
+    gap: spacing.md,
+    marginTop: spacing.lg,
     paddingVertical: spacing.md,
-    marginTop: spacing.xs,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
+  ownerAccent: { width: 3, alignSelf: 'stretch', borderRadius: 2, backgroundColor: colors.primary },
+  ownerTitle: { ...type.smallStrong, color: colors.text, letterSpacing: 0.1 },
+  ownerLink: { ...type.caption, fontWeight: '700', color: colors.primary, letterSpacing: 0.3 },
 });
 
 export default WelcomeScreen;
