@@ -164,7 +164,7 @@ export default function App() {
         <StatusBar style="light" />
         <Stack.Navigator initialRouteName="Welcome" screenOptions={stackHeader}>
           <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="Main" options={{ headerShown: false }}>
+          <Stack.Screen name="Main" options={{ headerShown: false, animation: 'fade' }}>
             {() => <MainTabs businesses={businesses} loadState={loadState} refreshBusinesses={refreshBusinesses} />}
           </Stack.Screen>
           <Stack.Screen

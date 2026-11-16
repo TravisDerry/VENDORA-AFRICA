@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Image, StyleSheet, Animated, PanResponder, useWindowDimensions } from 'react-native';
+import { View, Text, Image, StyleSheet, Animated, Easing, PanResponder, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,7 +19,7 @@ const SLIDES = [
     caption: 'Fruit market, Dar es Salaam, Tanzania',
     icon: 'business',
     eyebrow: 'Discover',
-    title: 'Every business.\nEvery corner of Africa.',
+    title: 'Every business.', highlight: 'Every corner of Africa.',
     body: 'Find local sellers near you, from market stalls to retail stores.',
     points: ['Local sellers', 'Pay with MoMo'],
   },
@@ -31,7 +31,7 @@ const SLIDES = [
     caption: 'Pay the way you already do',
     icon: 'wallet',
     eyebrow: 'Buy with confidence',
-    title: 'Contact sellers and\npay with Mobile Money',
+    title: 'Contact sellers and', highlight: 'pay with Mobile Money',
     body: 'Call, message or get directions in one tap. MTN MoMo, Telecel Cash and AirtelTigo.',
     points: ['Mobile Money', 'Direct contact'],
   },
@@ -43,7 +43,7 @@ const SLIDES = [
     caption: 'Built for African entrepreneurs',
     icon: 'trending-up',
     eyebrow: 'Grow your business',
-    title: 'List your business\nfree in minutes',
+    title: 'List your business', highlight: 'free in minutes',
     body: 'Reach new customers online, manage your stock and track your sales.',
     points: ['Free to register', 'Sales insights'],
   },
@@ -56,6 +56,10 @@ const WelcomeScreen = ({ navigation }) => {
   const fade = useRef(new Animated.Value(1)).current;
   const indexRef = useRef(0);
   const [box, setBox] = useState({ w: 0, h: 0 });
+  const [leaving, setLeaving] = useState(false);
+  const zoom = useRef(new Animated.Value(0)).current; // slow zoom/drift on the photo
+  const pulse = useRef(new Animated.Value(0)).current; // gentle pulse on "Start exploring"
+  const outro = useRef(new Animated.Value(0)).current; // closing screen before the main page
   useStatusBar('light');
 
   const isLast = index === SLIDES.length - 1;
@@ -72,7 +76,16 @@ const WelcomeScreen = ({ navigation }) => {
   };
 
   const enterApp = (screen = 'Home') => navigation.replace('Main', { screen });
-  const onNext = () => (indexRef.current >= SLIDES.length - 1 ? enterApp() : goTo(indexRef.current + 1));
+
+  // Last slide: cover the screen with the brand colour and logo, then fade into the app
+  const finish = () => {
+    if (leaving) return;
+    setLeaving(true);
+    Animated.timing(outro, { toValue: 1, duration: 650, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start(() => {
+      setTimeout(() => enterApp(), 550);
+    });
+  };
+  const onNext = () => (indexRef.current >= SLIDES.length - 1 ? finish() : goTo(indexRef.current + 1));
 
   // Swipe left/right anywhere on the photo
   const pan = useRef(
@@ -86,6 +99,47 @@ const WelcomeScreen = ({ navigation }) => {
   ).current;
 
   useEffect(() => () => fade.stopAnimation(), [fade]);
+
+  // Each photo slowly zooms in and drifts (restarts on every slide)
+  useEffect(() => {
+    zoom.setValue(0);
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(zoom, { toValue: 1, duration: 9000, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+        Animated.timing(zoom, { toValue: 0, duration: 9000, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+      ])
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [index, zoom]);
+
+  // Pulse the button on the last slide to invite people in
+  useEffect(() => {
+    if (!isLast) { pulse.setValue(0); return undefined; }
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 700, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0, duration: 700, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+        Animated.delay(600),
+      ])
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [isLast, pulse]);
+
+  const photoMotion = {
+    opacity: fade,
+    transform: [
+      { scale: zoom.interpolate({ inputRange: [0, 1], outputRange: [1.04, 1.16] }) },
+      { translateX: zoom.interpolate({ inputRange: [0, 1], outputRange: [index % 2 ? 10 : -10, index % 2 ? -10 : 10] }) },
+    ],
+  };
+  // Text rises in after each slide change; the headline leads, the rest follows
+  const rise = (distance) => ({
+    opacity: fade,
+    transform: [{ translateY: fade.interpolate({ inputRange: [0, 1], outputRange: [distance, 0] }) }],
+  });
+  const buttonPulse = { transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.04] }) }] };
 
   // Short phones (iPhone SE / 8 / mini) get tighter spacing so nothing overlaps.
   const compact = height < 740;
@@ -111,7 +165,7 @@ const WelcomeScreen = ({ navigation }) => {
     <View style={styles.container}>
       {/* Photo */}
       <View style={styles.photoWrap} onLayout={(e) => setBox({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })} {...pan.panHandlers}>
-        <Animated.Image source={slide.image} resizeMode="cover" style={[photoStyle, { opacity: fade }]} />
+        <Animated.Image source={slide.image} resizeMode="cover" style={[photoStyle, photoMotion]} />
         <LinearGradient
           colors={['rgba(11,38,56,0.70)', 'rgba(11,38,56,0.05)', 'rgba(11,38,56,0.0)', 'rgba(11,38,56,0.55)']}
           locations={[0, 0.3, 0.6, 1]}
@@ -149,13 +203,18 @@ const WelcomeScreen = ({ navigation }) => {
 
       {/* Sheet */}
       <View style={[styles.sheet, compact && styles.sheetCompact, { paddingBottom: Math.max(insets.bottom, spacing.md) + spacing.xs }]}>
-        <Animated.View style={{ opacity: fade }}>
-          <View style={styles.eyebrow}>
+        <View>
+          <Animated.View style={[styles.eyebrow, rise(6)]}>
             <Ionicons name={slide.icon} size={13} color={colors.primary} />
             <Text style={[type.overline, { color: colors.primary }]}>{slide.eyebrow}</Text>
-          </View>
-          <Text style={[type.h1, styles.title, compact && styles.titleCompact]}>{slide.title}</Text>
-          <Text style={[compact ? type.small : type.body, { color: colors.textSecondary, marginTop: spacing.sm }]}>{slide.body}</Text>
+          </Animated.View>
+          <Animated.View style={rise(14)}>
+            <Text style={[styles.title, compact && styles.titleCompact]}>{slide.title}</Text>
+            <Text style={[styles.title, styles.highlight, compact && styles.titleCompact]}>{slide.highlight}</Text>
+            <View style={styles.titleRule} />
+          </Animated.View>
+          <Animated.View style={rise(22)}>
+          <Text style={[compact ? type.small : type.body, { color: colors.textSecondary, marginTop: spacing.md }]}>{slide.body}</Text>
           <View style={[styles.points, compact && { marginTop: spacing.md }]}>
             {slide.points.map((p) => (
               <View key={p} style={styles.point}>
@@ -164,7 +223,8 @@ const WelcomeScreen = ({ navigation }) => {
               </View>
             ))}
           </View>
-        </Animated.View>
+          </Animated.View>
+        </View>
 
         <View style={[styles.actions, compact && { marginTop: spacing.lg }]}>
           {index > 0 ? (
@@ -177,19 +237,36 @@ const WelcomeScreen = ({ navigation }) => {
               <Ionicons name="arrow-back" size={22} color={colors.primary} />
             </Touchable>
           ) : null}
-          <Button
-            title={isLast ? 'Start exploring' : 'Next'}
-            icon={isLast ? 'compass-outline' : undefined}
-            iconRight={isLast ? undefined : 'arrow-forward'}
-            onPress={onNext}
-            style={{ flex: 1 }}
-          />
+          <Animated.View style={[{ flex: 1 }, isLast && buttonPulse]}>
+            <Button
+              title={isLast ? 'Start exploring' : 'Next'}
+              icon={isLast ? 'compass-outline' : undefined}
+              iconRight={isLast ? undefined : 'arrow-forward'}
+              onPress={onNext}
+            />
+          </Animated.View>
         </View>
         <Touchable onPress={() => enterApp('Register')} accessibilityRole="button" style={styles.secondary}>
           <Text style={[type.smallStrong, { color: colors.primary }]}>Own a business? List it free</Text>
           <Ionicons name="chevron-forward" size={14} color={colors.primary} />
         </Touchable>
       </View>
+
+      {/* Closing screen shown on the way into the app */}
+      {leaving ? (
+        <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.outro, { opacity: outro }]}>
+          <LinearGradient colors={[colors.primaryDeep, colors.primary]} style={StyleSheet.absoluteFill} />
+          <Animated.View style={{ alignItems: 'center', transform: [{ scale: outro.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }] }}>
+            <View style={styles.outroRing}>
+              <Image source={LOGO} style={styles.outroLogo} />
+            </View>
+          </Animated.View>
+          <Animated.View style={{ alignItems: 'center', opacity: outro, transform: [{ translateY: outro.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }}>
+            <Text style={styles.outroTitle}>Akwaaba</Text>
+            <Text style={styles.outroSub}>Welcome to Vendora Africa</Text>
+          </Animated.View>
+        </Animated.View>
+      ) : null}
     </View>
   );
 };
@@ -240,7 +317,7 @@ const styles = StyleSheet.create({
     ...shadow.lg,
   },
   sheetCompact: { paddingTop: spacing.xl },
-  titleCompact: { fontSize: 22, lineHeight: 28 },
+  titleCompact: { fontSize: 24, lineHeight: 30 },
   eyebrow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -252,7 +329,20 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     marginBottom: spacing.md,
   },
-  title: { color: colors.text, fontWeight: '400', letterSpacing: 0 },
+  // Light, large headline; the second line is picked out in the brand blue
+  title: { ...type.body, fontSize: 28, lineHeight: 35, fontWeight: '300', letterSpacing: -0.3, color: colors.text },
+  highlight: { color: colors.primary, fontWeight: '400' },
+  titleRule: { width: 36, height: 3, borderRadius: 2, backgroundColor: colors.accent, marginTop: spacing.md },
+  outro: { alignItems: 'center', justifyContent: 'center', gap: spacing.xl },
+  outroRing: {
+    width: 112, height: 112, borderRadius: 56,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: 'rgba(255,255,255,0.35)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  outroLogo: { width: 80, height: 80, borderRadius: 22 },
+  outroTitle: { ...type.body, fontSize: 34, lineHeight: 40, fontWeight: '300', letterSpacing: 0.5, color: colors.onPrimary },
+  outroSub: { ...type.body, color: colors.onPrimaryMuted, marginTop: spacing.xs },
   points: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.lg, marginTop: spacing.lg },
   point: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.xxl },
