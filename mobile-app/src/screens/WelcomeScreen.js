@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     marginBottom: spacing.md,
   },
-  title: { color: colors.text },
+  title: { color: colors.text, fontWeight: '400', letterSpacing: 0 },
   points: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.lg, marginTop: spacing.lg },
   point: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.xxl },
