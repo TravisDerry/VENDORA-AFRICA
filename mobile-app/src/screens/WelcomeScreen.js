@@ -49,6 +49,8 @@ const SLIDES = [
   },
 ];
 
+const SLIDE_MS = 5000; // how long each slide stays before moving on by itself
+
 const WelcomeScreen = ({ navigation }) => {
   const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -60,6 +62,8 @@ const WelcomeScreen = ({ navigation }) => {
   const zoom = useRef(new Animated.Value(0)).current; // slow zoom/drift on the photo
   const pulse = useRef(new Animated.Value(0)).current; // gentle pulse on "Start exploring"
   const outro = useRef(new Animated.Value(0)).current; // closing screen before the main page
+  const progress = useRef(new Animated.Value(0)).current; // fills the current progress bar
+  const ctaIn = useRef(new Animated.Value(0)).current; // "Start exploring" appears on the last slide
   useStatusBar('light');
 
   const isLast = index === SLIDES.length - 1;
@@ -85,7 +89,6 @@ const WelcomeScreen = ({ navigation }) => {
       setTimeout(() => enterApp(), 550);
     });
   };
-  const onNext = () => (indexRef.current >= SLIDES.length - 1 ? finish() : goTo(indexRef.current + 1));
 
   // Swipe left/right anywhere on the photo
   const pan = useRef(
@@ -112,6 +115,21 @@ const WelcomeScreen = ({ navigation }) => {
     anim.start();
     return () => anim.stop();
   }, [index, zoom]);
+
+  // Slides move on by themselves; the progress bar shows the time left on each one.
+  // The last slide stays until the person taps "Start exploring".
+  useEffect(() => {
+    progress.setValue(0);
+    if (isLast) {
+      progress.setValue(1);
+      Animated.timing(ctaIn, { toValue: 1, duration: 450, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+      return undefined;
+    }
+    ctaIn.setValue(0);
+    const anim = Animated.timing(progress, { toValue: 1, duration: SLIDE_MS, easing: Easing.linear, useNativeDriver: false });
+    anim.start(({ finished }) => { if (finished) goTo(indexRef.current + 1); });
+    return () => anim.stop();
+  }, [index]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Pulse the button on the last slide to invite people in
   useEffect(() => {
@@ -181,17 +199,19 @@ const WelcomeScreen = ({ navigation }) => {
               <Text style={[type.caption, { color: colors.onPrimaryMuted }]}>Africa's business marketplace</Text>
             </View>
           </View>
-          {!isLast ? (
-            <Touchable onPress={() => enterApp()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Skip introduction" style={styles.skip}>
-              <Text style={[type.smallStrong, { color: colors.onPrimary }]}>Skip</Text>
-            </Touchable>
-          ) : null}
         </View>
 
         {/* Progress */}
         <View style={styles.progress}>
           {SLIDES.map((s, i) => (
-            <View key={s.key} style={[styles.progressBar, i <= index && styles.progressBarActive]} />
+            <View key={s.key} style={styles.progressBar}>
+              <Animated.View
+                style={[
+                  styles.progressFill,
+                  { width: i < index ? '100%' : i > index ? '0%' : progress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) },
+                ]}
+              />
+            </View>
           ))}
         </View>
 
@@ -226,26 +246,18 @@ const WelcomeScreen = ({ navigation }) => {
           </Animated.View>
         </View>
 
-        <View style={[styles.actions, compact && { marginTop: spacing.lg }]}>
-          {index > 0 ? (
-            <Touchable
-              onPress={() => goTo(index - 1)}
-              accessibilityRole="button"
-              accessibilityLabel="Previous"
-              style={styles.backButton}
-            >
-              <Ionicons name="arrow-back" size={22} color={colors.primary} />
-            </Touchable>
-          ) : null}
-          <Animated.View style={[{ flex: 1 }, isLast && buttonPulse]}>
-            <Button
-              title={isLast ? 'Start exploring' : 'Next'}
-              icon={isLast ? 'compass-outline' : undefined}
-              iconRight={isLast ? undefined : 'arrow-forward'}
-              onPress={onNext}
-            />
+        <Animated.View
+          pointerEvents={isLast ? 'auto' : 'none'}
+          style={[
+            styles.actions,
+            compact && { marginTop: spacing.lg },
+            { opacity: ctaIn, transform: [{ translateY: ctaIn.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }] },
+          ]}
+        >
+          <Animated.View style={[{ flex: 1 }, buttonPulse]}>
+            <Button title="Start exploring" icon="compass-outline" onPress={finish} />
           </Animated.View>
-        </View>
+        </Animated.View>
         <Touchable onPress={() => enterApp('Register')} accessibilityRole="button" style={styles.secondary}>
           <Text style={[type.smallStrong, { color: colors.primary }]}>Own a business? List it free</Text>
           <Ionicons name="chevron-forward" size={14} color={colors.primary} />
@@ -283,17 +295,9 @@ const styles = StyleSheet.create({
   },
   brand: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   logo: { width: 44, height: 44, borderRadius: 12, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.45)' },
-  skip: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: 8,
-    borderRadius: radius.pill,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.35)',
-  },
   progress: { flexDirection: 'row', gap: 6, paddingHorizontal: spacing.gutter, marginTop: spacing.lg },
-  progressBar: { flex: 1, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.35)' },
-  progressBarActive: { backgroundColor: colors.onPrimary },
+  progressBar: { flex: 1, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.35)', overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: colors.onPrimary },
   caption: {
     position: 'absolute',
     left: spacing.gutter,
@@ -317,7 +321,7 @@ const styles = StyleSheet.create({
     ...shadow.lg,
   },
   sheetCompact: { paddingTop: spacing.xl },
-  titleCompact: { fontSize: 24, lineHeight: 30 },
+  titleCompact: { fontSize: 19, lineHeight: 25 },
   eyebrow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -330,7 +334,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   // Light, large headline; the second line is picked out in the brand blue
-  title: { ...type.body, fontSize: 28, lineHeight: 35, fontWeight: '300', letterSpacing: -0.3, color: colors.text },
+  title: { ...type.body, fontSize: 22, lineHeight: 29, fontWeight: '300', letterSpacing: -0.2, color: colors.text },
   highlight: { color: colors.primary, fontWeight: '400' },
   titleRule: { width: 36, height: 3, borderRadius: 2, backgroundColor: colors.accent, marginTop: spacing.md },
   outro: { alignItems: 'center', justifyContent: 'center', gap: spacing.xl },
@@ -346,15 +350,6 @@ const styles = StyleSheet.create({
   points: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.lg, marginTop: spacing.lg },
   point: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.xxl },
-  backButton: {
-    width: 52,
-    height: 52,
-    borderRadius: radius.md,
-    borderWidth: 1.5,
-    borderColor: colors.primaryMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   secondary: {
     flexDirection: 'row',
     alignItems: 'center',
