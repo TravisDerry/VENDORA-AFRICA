@@ -6,6 +6,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing, radius, type, shadow } from '../theme';
 import { Button, Touchable, useStatusBar } from '../components/ui';
 import { AFRICA_IMAGES, LOGO } from '../data/images';
+import { NETWORKS } from '../data/networks';
+import { useFonts } from 'expo-font';
+// Only the three weights used here (importing the whole package would bundle all 14)
+import { PlusJakartaSans_400Regular } from '@expo-google-fonts/plus-jakarta-sans/400Regular';
+import { PlusJakartaSans_500Medium } from '@expo-google-fonts/plus-jakarta-sans/500Medium';
+import { PlusJakartaSans_600SemiBold } from '@expo-google-fonts/plus-jakarta-sans/600SemiBold';
 
 // First screen people see when they open the app.
 // Slides are driven by state (not scroll events) so Next / Back / swipe all work on
@@ -30,7 +36,8 @@ const SLIDES = [
     caption: 'Pay the way you already do',
     eyebrow: 'Buy with confidence',
     title: 'Contact sellers and', highlight: 'pay with Mobile Money',
-    body: 'Call, message or get directions in one tap. MTN MoMo, Telecel Cash and AirtelTigo.',
+    body: 'Call, message or get directions in one tap, then pay securely with:',
+    networks: true,
     points: ['Mobile Money', 'Direct contact'],
   },
   {
@@ -62,6 +69,9 @@ const WelcomeScreen = ({ navigation }) => {
   const progress = useRef(new Animated.Value(0)).current; // fills the current progress bar
   const ctaIn = useRef(new Animated.Value(0)).current; // "Start exploring" appears on the last slide
   useStatusBar('light');
+  // Headline typeface; the phone's own font is used until it has loaded
+  const [fontsReady] = useFonts({ PlusJakartaSans_400Regular, PlusJakartaSans_500Medium, PlusJakartaSans_600SemiBold });
+  const headFont = (name) => (fontsReady ? { fontFamily: name, fontWeight: 'normal' } : null);
 
   const isLast = index === SLIDES.length - 1;
   const slide = SLIDES[index];
@@ -235,20 +245,35 @@ const WelcomeScreen = ({ navigation }) => {
           </Animated.View>
 
           <Animated.View style={rise(14)}>
-            <Text style={[styles.title, compact && styles.titleCompact]}>{slide.title}</Text>
-            <Text style={[styles.title, styles.highlight, compact && styles.titleCompact]}>{slide.highlight}</Text>
+            <Text style={[styles.title, headFont('PlusJakartaSans_500Medium'), compact && styles.titleCompact]}>{slide.title}</Text>
+            <Text style={[styles.title, styles.highlight, headFont('PlusJakartaSans_600SemiBold'), compact && styles.titleCompact]}>{slide.highlight}</Text>
           </Animated.View>
 
           <Animated.View style={rise(22)}>
-            <Text style={[styles.bodyText, compact && styles.bodyCompact]}>{slide.body}</Text>
-            <View style={[styles.points, compact && { marginTop: spacing.md }]}>
-              {slide.points.map((p) => (
-                <View key={p} style={styles.point}>
-                  <View style={styles.pointDot} />
-                  <Text style={styles.pointText}>{p}</Text>
-                </View>
-              ))}
-            </View>
+            <Text style={[styles.bodyText, headFont('PlusJakartaSans_400Regular'), compact && styles.bodyCompact]}>{slide.body}</Text>
+            {slide.networks ? (
+              // Mobile Money networks: official logo when added (see data/networks.js), else a brand-colour badge
+              <View style={[styles.points, compact && { marginTop: spacing.md }]}>
+                {NETWORKS.map((n) =>
+                  n.logo ? (
+                    <Image key={n.id} source={n.logo} style={styles.networkLogo} resizeMode="contain" accessibilityLabel={n.name} />
+                  ) : (
+                    <View key={n.id} style={[styles.network, { backgroundColor: n.bg }]} accessibilityLabel={n.name}>
+                      <Text style={[styles.networkText, { color: n.fg }, headFont('PlusJakartaSans_600SemiBold')]}>{n.name}</Text>
+                    </View>
+                  )
+                )}
+              </View>
+            ) : (
+              <View style={[styles.points, compact && { marginTop: spacing.md }]}>
+                {slide.points.map((p) => (
+                  <View key={p} style={styles.point}>
+                    <View style={styles.pointDot} />
+                    <Text style={styles.pointText}>{p}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
           </Animated.View>
         </View>
 
@@ -343,13 +368,17 @@ const styles = StyleSheet.create({
   handle: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: colors.border, marginBottom: spacing.xl },
   labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
   counter: { ...type.caption, color: colors.placeholder, letterSpacing: 1, fontVariant: ['tabular-nums'] },
-  titleCompact: { fontSize: 19, lineHeight: 25 },
+  titleCompact: { fontSize: 21, lineHeight: 27 },
   eyebrow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   eyebrowRule: { width: 20, height: 2, borderRadius: 1, backgroundColor: colors.accent },
   eyebrowText: { ...type.caption, fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase', color: colors.primary },
   // Light, large headline; the second line is picked out in the brand blue
-  title: { ...type.body, fontSize: 22, lineHeight: 29, fontWeight: '300', letterSpacing: -0.2, color: colors.text },
-  highlight: { color: colors.primary, fontWeight: '400' },
+  // Headlines: Plus Jakarta Sans, tight tracking; second line in brand navy
+  title: { ...type.body, fontSize: 24, lineHeight: 31, fontWeight: '500', letterSpacing: -0.6, color: colors.text },
+  highlight: { color: colors.primary, fontWeight: '600' },
+  network: { paddingHorizontal: spacing.md, paddingVertical: 7, borderRadius: radius.sm },
+  networkText: { fontSize: 12, lineHeight: 15, fontWeight: '700', letterSpacing: 0.2 },
+  networkLogo: { width: 72, height: 30 },
   bodyText: { ...type.body, color: colors.textSecondary, marginTop: spacing.md, maxWidth: 360 },
   bodyCompact: { ...type.small, marginTop: spacing.sm },
   outro: { alignItems: 'center', justifyContent: 'center', gap: spacing.xl },
