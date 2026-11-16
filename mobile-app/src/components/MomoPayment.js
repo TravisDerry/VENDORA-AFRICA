@@ -59,12 +59,16 @@ export const usePaymentFlow = () => {
   const [error, setError] = useState('');
   const pollStarted = useRef(0);
   const timer = useRef(null);
-  useEffect(() => () => clearTimeout(timer.current), []);
+  // Reference of the payment this screen is following. Cleared on cancel so a status check that
+  // was already in flight cannot bring a cancelled payment back onto the screen.
+  const active = useRef(null);
+  useEffect(() => () => { active.current = null; clearTimeout(timer.current); }, []);
 
   const checkStatus = useCallback(async (reference) => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/payments/${encodeURIComponent(reference)}`);
       const json = await readJson(res);
+      if (active.current !== reference) return 'cancelled';
       if (res.ok && json.payment) {
         setPayment(json.payment);
         return json.payment.step;
@@ -72,7 +76,7 @@ export const usePaymentFlow = () => {
     } catch (e) {
       // keep waiting; network blips are common on mobile data
     }
-    return 'approve';
+    return active.current === reference ? 'approve' : 'cancelled';
   }, []);
 
   const schedulePoll = useCallback((reference) => {
@@ -89,6 +93,7 @@ export const usePaymentFlow = () => {
   }, [checkStatus]);
 
   const onStep = (p) => {
+    active.current = p.reference;
     setPayment(p);
     if (p.step === 'approve') {
       pollStarted.current = Date.now();
@@ -96,7 +101,10 @@ export const usePaymentFlow = () => {
     }
   };
 
+  const starting = useRef(false); // blocks a double tap from sending two payment prompts
   const start = async (path, body, headers = {}) => {
+    if (starting.current) return;
+    starting.current = true;
     setError('');
     setBusy(true);
     try {
@@ -111,6 +119,7 @@ export const usePaymentFlow = () => {
     } catch (e) {
       setError(networkMessage(e));
     } finally {
+      starting.current = false;
       setBusy(false);
     }
   };
@@ -139,11 +148,20 @@ export const usePaymentFlow = () => {
     setBusy(true);
     const s = await checkStatus(payment.reference);
     setBusy(false);
-    if (s === 'approve' || s === 'timeout') setError('Not confirmed yet. Approve the prompt on your phone, then check again.');
-    else setError('');
+    if (s === 'cancelled') return;
+    if (s === 'approve' || s === 'timeout') {
+      setError('Not confirmed yet. Approve the prompt on your phone, then check again.');
+      // Still pending: keep watching in the background (also after the 3-minute timeout screen)
+      if (s === 'approve') {
+        setPayment((p) => ({ ...p, step: 'approve' }));
+        pollStarted.current = Date.now();
+        schedulePoll(payment.reference);
+      }
+    } else setError('');
   };
 
   const restart = () => {
+    active.current = null;
     clearTimeout(timer.current);
     setPayment(null);
     setError('');

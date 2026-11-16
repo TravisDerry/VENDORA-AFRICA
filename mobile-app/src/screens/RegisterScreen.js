@@ -62,9 +62,14 @@ const RegisterScreen = ({ navigation, refreshBusinesses }) => {
   const validateForm = () => {
     const newErrors = {};
 
+    // Same length rules as the server, so people see the problem next to the field
+    const tooShort = (v) => v.trim().length < 2;
     if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
+    else if (tooShort(formData.firstName)) newErrors.firstName = 'First name must be at least 2 letters';
     if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
+    else if (tooShort(formData.lastName)) newErrors.lastName = 'Last name must be at least 2 letters';
     if (!formData.businessName.trim()) newErrors.businessName = 'Business name is required';
+    else if (tooShort(formData.businessName)) newErrors.businessName = 'Business name must be at least 2 characters';
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
@@ -72,7 +77,7 @@ const RegisterScreen = ({ navigation, refreshBusinesses }) => {
     }
     if (!formData.phoneNumber.trim()) {
       newErrors.phoneNumber = 'Phone number is required';
-    } else if (!/^\+?[0-9]{10,15}$/.test(formData.phoneNumber.replace(/\s/g, ''))) {
+    } else if (!/^\+?[0-9]{10,15}$/.test(formData.phoneNumber.replace(/[\s\-().]/g, ''))) {
       newErrors.phoneNumber = 'Please enter a valid phone number';
     }
     if (!formData.businessCategory) newErrors.businessCategory = 'Please select a business category';
@@ -119,12 +124,15 @@ const RegisterScreen = ({ navigation, refreshBusinesses }) => {
       }
 
       // Keep the owner key on this phone so the owner can add products later
+      // (the business is already registered at this point, so a storage hiccup must not show "Registration failed")
       if (result.manageKey && result.business?.id) {
-        await saveOwnerKey(result.business.id, result.manageKey, result.business.businessName);
+        await saveOwnerKey(result.business.id, result.manageKey, result.business.businessName).catch((e) =>
+          console.log('Could not save owner key on this phone:', e?.message)
+        );
       }
 
       if (refreshBusinesses) {
-        await refreshBusinesses();
+        refreshBusinesses(); // update Home in the background; no need to make the owner wait
       }
 
       // The owner key is shown once on the success screen so the owner can keep a copy
