@@ -8,6 +8,18 @@ const mongoose = require('mongoose');
 const dns = require('dns');
 require('dotenv').config();
 
+// On a real server, stop straight away if a critical setting is missing or unsafe
+const { checkProductionConfig } = require('./utils/checkProductionConfig');
+{
+  const { errors, warnings } = checkProductionConfig();
+  warnings.forEach((w) => console.warn(`WARNING: ${w}`));
+  if (errors.length) {
+    errors.forEach((e) => console.error(`CONFIG ERROR: ${e}`));
+    console.error("Fix the settings above in your host's environment variables, then redeploy.");
+    process.exit(1);
+  }
+}
+
 // mongodb+srv:// needs a DNS SRV lookup. On some Windows setups (e.g. phone hotspots)
 // Node picks up 127.0.0.1 as its only DNS server, so the lookup fails with
 // "querySrv ECONNREFUSED". Fall back to public resolvers in that case.
