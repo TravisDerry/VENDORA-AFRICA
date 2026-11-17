@@ -42,6 +42,12 @@
           "cameraPermission": "Vendora Africa uses the camera so you can take pictures of your business and products."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "611a8ab3-6b41-436b-8402-ef2cc878bd3c"
+      }
+    },
+    "owner": "derrytravis"
   }
 }

@@ -33,7 +33,7 @@ One-time setup, in `mobile-app/`:
 npm install -g eas-cli
 eas login
 eas init
-eas env:create --name EXPO_PUBLIC_API_URL --value https://<your-api-address> --environment production --environment preview --visibility plaintext
+eas env:set --name EXPO_PUBLIC_API_URL --value https://<your-api-address> --environment production --environment preview --visibility plaintext
 ```
 
 A build stops with a clear message if `EXPO_PUBLIC_API_URL` is missing or not `https://`, so the app can never ship pointing at a laptop.
