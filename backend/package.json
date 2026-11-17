@@ -11,6 +11,7 @@
     "start-free-month": "node scripts/start-free-month.js",
     "support": "node scripts/support.js",
     "verify": "node scripts/verify.js",
+    "move-photos": "node scripts/move-photos-to-cloudinary.js",
     "reset-admin-password": "node scripts/reset-admin-password.js"
   },
   "engines": {
