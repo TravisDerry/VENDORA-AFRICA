@@ -63,6 +63,9 @@ const WelcomeScreen = ({ navigation }) => {
   const indexRef = useRef(0);
   const [box, setBox] = useState({ w: 0, h: 0 });
   const [leaving, setLeaving] = useState(false);
+  // Height of the "Start exploring" row on the last slide; the other slides add the same space
+  // at the bottom so the white card is the same height on every slide
+  const [ctaHeight, setCtaHeight] = useState(52);
   const zoom = useRef(new Animated.Value(0)).current; // slow zoom/drift on the photo
   const pulse = useRef(new Animated.Value(0)).current; // gentle pulse on "Start exploring"
   const outro = useRef(new Animated.Value(0)).current; // closing screen before the main page
@@ -74,6 +77,11 @@ const WelcomeScreen = ({ navigation }) => {
   const headFont = (name) => (fontsReady ? { fontFamily: name, fontWeight: 'normal' } : null);
 
   const isLast = index === SLIDES.length - 1;
+  // Short phones (iPhone SE / 8 / mini) get tighter spacing so nothing overlaps.
+  const compact = height < 740;
+  // Slides without the button get its height back, shared out in three places inside the card
+  // (not all at the bottom) so the card is the same height on every slide
+  const extraSpace = Math.round((ctaHeight + (compact ? spacing.lg : spacing.xl)) / 3);
   const slide = SLIDES[index];
 
   const goTo = (target) => {
@@ -166,8 +174,6 @@ const WelcomeScreen = ({ navigation }) => {
   });
   const buttonPulse = { transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.04] }) }] };
 
-  // Short phones (iPhone SE / 8 / mini) get tighter spacing so nothing overlaps.
-  const compact = height < 740;
 
   // Size the photo to cover the box while keeping the slide's focal point in view
   // (plain resizeMode="cover" always centres, which cut faces off on tall phones).
@@ -231,12 +237,13 @@ const WelcomeScreen = ({ navigation }) => {
       {/* Sheet */}
       <View style={[styles.sheet, compact && styles.sheetCompact, { paddingBottom: Math.max(insets.bottom, spacing.md) + spacing.xs }]}>
         <View style={styles.handle} />
+        {!isLast ? <View style={{ height: extraSpace }} /> : null}
         <View>
           {/* Label row: section name on the left, slide count on the right */}
           <Animated.View style={[styles.labelRow, rise(6)]}>
             <View style={styles.eyebrow}>
               <View style={styles.eyebrowRule} />
-              <Text style={styles.eyebrowText}>{slide.eyebrow}</Text>
+              <Text style={[styles.eyebrowText, headFont('PlusJakartaSans_600SemiBold')]}>{slide.eyebrow}</Text>
             </View>
             <Text style={styles.counter}>
               <Text style={{ color: colors.text }}>{String(index + 1).padStart(2, '0')}</Text>
@@ -253,7 +260,7 @@ const WelcomeScreen = ({ navigation }) => {
             </Text>
           </Animated.View>
 
-          <Animated.View style={rise(22)}>
+          <Animated.View style={[rise(22), !isLast && { marginTop: extraSpace }]}>
             <Text style={[styles.bodyText, headFont('PlusJakartaSans_400Regular'), compact && styles.bodyCompact]}>{slide.body}</Text>
             {slide.networks ? (
               // Mobile Money networks: official logo when added (see data/networks.js), else a brand-colour badge
@@ -284,6 +291,7 @@ const WelcomeScreen = ({ navigation }) => {
         {/* Only on the last slide, so the first slides have no empty gap */}
         {isLast ? (
           <Animated.View
+            onLayout={(e) => setCtaHeight(e.nativeEvent.layout.height)}
             style={[
               styles.actions,
               compact && { marginTop: spacing.lg },
@@ -300,7 +308,7 @@ const WelcomeScreen = ({ navigation }) => {
           onPress={() => enterApp('Register')}
           accessibilityRole="button"
           accessibilityLabel="Own a business? List it free"
-          style={[styles.ownerRow, compact && { marginTop: spacing.md }]}
+          style={[styles.ownerRow, compact && { marginTop: spacing.md }, !isLast && { marginTop: (compact ? spacing.md : spacing.lg) + extraSpace }]}
         >
           <View style={styles.ownerAccent} />
           <View style={{ flex: 1 }}>
@@ -373,9 +381,16 @@ const styles = StyleSheet.create({
   labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
   counter: { ...type.caption, color: colors.placeholder, letterSpacing: 1, fontVariant: ['tabular-nums'] },
   titleCompact: { fontSize: 18, lineHeight: 25 },
-  eyebrow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  eyebrowRule: { width: 20, height: 2, borderRadius: 1, backgroundColor: colors.accent },
-  eyebrowText: { ...type.caption, fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase', color: colors.primary },
+  // Section tag: a soft blue pill with a small accent dot
+  eyebrow: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    paddingHorizontal: spacing.lg, paddingVertical: 9,
+    borderRadius: radius.pill,
+    backgroundColor: colors.primarySoft,
+    borderWidth: 1, borderColor: colors.primaryMuted,
+  },
+  eyebrowRule: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.accent },
+  eyebrowText: { ...type.caption, fontSize: 13, lineHeight: 16, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: colors.primary },
   // Light, large headline; the second line is picked out in the brand blue
   // Headlines: Plus Jakarta Sans, tight tracking; second line in brand navy
   title: { ...type.body, fontSize: 20, lineHeight: 28, fontWeight: '500', letterSpacing: -0.4, color: colors.primaryDeep, maxWidth: 340 },
