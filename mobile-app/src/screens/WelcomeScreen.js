@@ -372,14 +372,14 @@ const styles = StyleSheet.create({
   handle: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: colors.border, marginBottom: spacing.xl },
   labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
   counter: { ...type.caption, color: colors.placeholder, letterSpacing: 1, fontVariant: ['tabular-nums'] },
-  titleCompact: { fontSize: 20, lineHeight: 27 },
+  titleCompact: { fontSize: 18, lineHeight: 25 },
   eyebrow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   eyebrowRule: { width: 20, height: 2, borderRadius: 1, backgroundColor: colors.accent },
   eyebrowText: { ...type.caption, fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase', color: colors.primary },
   // Light, large headline; the second line is picked out in the brand blue
   // Headlines: Plus Jakarta Sans, tight tracking; second line in brand navy
-  title: { ...type.body, fontSize: 23, lineHeight: 31, fontWeight: '500', letterSpacing: -0.5, color: colors.text, maxWidth: 340 },
-  highlight: { color: colors.primary, fontWeight: '600' },
+  title: { ...type.body, fontSize: 20, lineHeight: 28, fontWeight: '500', letterSpacing: -0.4, color: colors.primaryDeep, maxWidth: 340 },
+  highlight: { color: colors.accent, fontWeight: '600' },
   network: { paddingHorizontal: spacing.md, paddingVertical: 7, borderRadius: radius.sm },
   networkText: { fontSize: 12, lineHeight: 15, fontWeight: '700', letterSpacing: 0.2 },
   networkLogo: { width: 72, height: 30 },
