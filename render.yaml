@@ -6,7 +6,7 @@ services:
     name: vendora-api
     runtime: node
     rootDir: backend
-    plan: starter # always on; the free plan sleeps after 15 minutes and wakes slowly
+    plan: free # for testing. Before going live, switch to starter (always on): the free plan sleeps after 15 minutes and takes ~1 minute to wake
     region: frankfurt # closest Render region to West Africa
     buildCommand: npm ci --omit=dev
     startCommand: npm start
