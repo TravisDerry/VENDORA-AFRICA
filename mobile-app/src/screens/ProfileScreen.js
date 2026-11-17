@@ -1,486 +1,297 @@
-import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  ScrollView, 
-  TouchableOpacity, 
-  StyleSheet,
-  Alert,
-  Switch
-} from 'react-native';
+// Account tab. There are no customer logins yet, so this shows what this phone actually knows:
+// - customers: a guest welcome and their orders (saved on this phone)
+// - owners: the real business they manage on this phone (loaded from the backend)
+import React, { useCallback, useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, Alert, ActivityIndicator, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect } from '@react-navigation/native';
+import { colors, spacing, radius, type } from '../theme';
+import { GradientHeader, Card, ListRow, Avatar, Badge, StatTile, IconButton, Button, useStatusBar } from '../components/ui';
+import { API_BASE_URL } from '../config';
+import { getLiveOwnedBusinesses, getOwnerKey } from '../utils/ownerKeys';
+import { getMyOrders } from '../utils/myOrders';
+import { normalizeBusiness } from '../utils/businesses';
+import { readJson, formatGhs } from '../components/MomoPayment';
+import { ListingStatusCard, PendingApprovalCard } from '../components/ListingStatus';
+import { BusinessCover } from '../components/BusinessCover';
+import { resolvePhoto } from '../utils/photos';
 
-const ProfileScreen = () => {
-  const [notifications, setNotifications] = useState(true);
-  const [locationServices, setLocationServices] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
+const LISTING_BADGE = {
+  trial: { label: 'Free month', icon: 'gift-outline' },
+  active: { label: 'Listing paid', icon: 'checkmark-circle-outline' },
+  grace: { label: 'Payment due', icon: 'alert-circle-outline' },
+  expired: { label: 'Hidden', icon: 'eye-off-outline' },
+};
 
-  // Mock user data
-  const user = {
-    name: 'Al-amin Mohammed',
-    businessName: 'NAFATUS ALU WORKS',
-    email: 'alamin@nafatus.com',
-    phone: '+233 24 123 4567',
-    plan: 'Standard',
-    memberSince: 'January 2024',
-    businessCategory: 'Aluminum & glass works',
-    location: 'Accra, Ghana',
+const titleCase = (v) => String(v || '').replace(/\b\w/g, (c) => c.toUpperCase());
+const monthYear = (d) => {
+  try {
+    return d ? new Date(d).toLocaleDateString('en-GH', { month: 'long', year: 'numeric' }) : '';
+  } catch (e) {
+    return '';
+  }
+};
+const compact = (n) => (Number(n) >= 1000 ? `${(Number(n) / 1000).toFixed(1).replace(/\.0$/, '')}k` : String(Number(n) || 0));
+
+const ProfileScreen = ({ navigation }) => {
+  useStatusBar('light');
+  const [loading, setLoading] = useState(true);
+  const [ownedCount, setOwnedCount] = useState(0);
+  const [business, setBusiness] = useState(null); // raw API record of the first managed business
+  const [received, setReceived] = useState(null); // { count, total }
+  const [orderCount, setOrderCount] = useState(0);
+
+  const load = useCallback(async () => {
+    const [owned, orders] = await Promise.all([getLiveOwnedBusinesses(API_BASE_URL), getMyOrders()]);
+    setOwnedCount(owned.length);
+    setOrderCount(orders.length);
+    if (owned.length === 0) {
+      setBusiness(null);
+      setReceived(null);
+      setLoading(false);
+      return;
+    }
+    const first = owned[0];
+    try {
+      const key = await getOwnerKey(first.id);
+      const [bRes, pRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/businesses/${encodeURIComponent(first.id)}?track=0`, { headers: { 'X-Manage-Key': key || '' } }),
+        key ? fetch(`${API_BASE_URL}/api/payments/received/${encodeURIComponent(first.id)}`, { headers: { 'X-Manage-Key': key } }) : null,
+      ]);
+      const bJson = await readJson(bRes);
+      setBusiness(bRes.ok ? (bJson.business || bJson) : { _id: first.id, businessName: first.name, offline: true });
+      if (pRes && pRes.ok) {
+        const list = (await readJson(pRes)).payments || [];
+        setReceived({ count: list.length, total: list.reduce((s, p) => s + (Number(p.amount) || 0), 0) });
+      } else setReceived(null);
+    } catch (e) {
+      setBusiness({ _id: first.id, businessName: first.name, offline: true });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(useCallback(() => { load(); }, [load]));
+
+  const say = (title, msg) => (Platform.OS === 'web' ? window.alert(`${title}\n\n${msg}`) : Alert.alert(title, msg));
+
+  const openMyBusiness = () => {
+    if (!business || business.offline) return navigation.navigate('ManageBusiness');
+    navigation.navigate('BusinessDetail', { business: normalizeBusiness(business, 0), tab: 'products' });
+  };
+  const openPayouts = () => {
+    if (!business) return;
+    navigation.navigate('PayoutSetup', { business: normalizeBusiness(business, 0) });
   };
 
-  const stats = [
-    { label: 'Products listed', value: '24' },
-    { label: 'Total views', value: '1,247' },
-    { label: 'Customer reviews', value: '18' },
-    { label: 'Response rate', value: '98%' },
-  ];
+  const isOwner = !!business;
+  // An owner's Account header shows their own business photo (plain navy if they haven't added one)
+  const coverPhoto = isOwner ? resolvePhoto(business.images?.cover) : null;
+  const listingBadge = business && !business.offline && !business.verified ? { label: 'Awaiting approval', icon: 'hourglass-outline' } : LISTING_BADGE[business?.listing?.status];
+  const loc = business?.location && typeof business.location === 'object' ? business.location : {};
+  const place = [titleCase(loc.city || loc.address), titleCase(business?.country)].filter(Boolean).join(', ');
+  const products = Array.isArray(business?.products) ? business.products.length : 0;
 
-  const menuItems = [
-    {
-      icon: 'storefront-outline',
-      title: 'My Business',
-      subtitle: 'Manage your business profile',
-      action: 'business'
-    },
-    {
-      icon: 'grid-outline',
-      title: 'Products',
-      subtitle: 'Manage your product listings',
-      action: 'products'
-    },
-    {
-      icon: 'chart-bar-outline',
-      title: 'Analytics',
-      subtitle: 'View sales and performance',
-      action: 'analytics'
-    },
-    {
-      icon: 'card-outline',
-      title: 'Billing & Plans',
-      subtitle: 'Manage your subscription',
-      action: 'billing'
-    },
-    {
-      icon: 'message-outline',
-      title: 'Messages',
-      subtitle: 'Customer inquiries',
-      action: 'messages',
-      badge: '3'
-    },
-    {
-      icon: 'star-outline',
-      title: 'Reviews',
-      subtitle: 'Customer feedback',
-      action: 'reviews'
-    },
-    {
-      icon: 'help-circle-outline',
-      title: 'Help & Support',
-      subtitle: 'Get assistance',
-      action: 'help'
-    },
-    {
-      icon: 'document-text-outline',
-      title: 'Terms & Privacy',
-      subtitle: 'Legal information',
-      action: 'legal'
-    },
-  ];
-
-  const handleMenuPress = (action) => {
-    Alert.alert(
-      'Feature Coming Soon',
-      `${action.charAt(0).toUpperCase() + action.slice(1)} feature will be available soon!`,
-      [{ text: 'OK' }]
-    );
-  };
-
-  const handleLogout = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign Out', onPress: () => console.log('Logout') },
-      ]
-    );
-  };
-
-  const renderStatItem = (stat, index) => (
-    <View key={index} style={styles.statItem}>
-      <Text style={styles.statValue}>{stat.value}</Text>
-      <Text style={styles.statLabel}>{stat.label}</Text>
-    </View>
-  );
-
-  const renderMenuItem = (item, index) => (
-    <TouchableOpacity
-      key={index}
-      style={styles.menuItem}
-      onPress={() => handleMenuPress(item.action)}
-    >
-      <View style={styles.menuLeft}>
-        <View style={styles.menuIcon}>
-          <Ionicons name={item.icon} size={24} color="#1B4F72" />
+  const header = isOwner ? (
+    <>
+      <View style={styles.profileRow}>
+        <View style={styles.avatarRing}>
+          <BusinessCover business={{ name: business.businessName, category: business.category, image: business.images?.cover }} style={styles.ownerPhoto} compact />
         </View>
-        <View style={styles.menuContent}>
-          <Text style={styles.menuTitle}>{item.title}</Text>
-          <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
-        </View>
-      </View>
-      <View style={styles.menuRight}>
-        {item.badge && (
-          <View style={styles.menuBadge}>
-            <Text style={styles.menuBadgeText}>{item.badge}</Text>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={[type.overline, { color: colors.onPrimaryMuted }]}>Business owner</Text>
+          <Text style={[type.h2, { color: colors.onPrimary }]} numberOfLines={1}>{business.businessName}</Text>
+          <View style={{ flexDirection: 'row', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
+            {listingBadge ? <Badge label={listingBadge.label} tone="inverse" icon={listingBadge.icon} /> : null}
+            {ownedCount > 1 ? <Badge label={`+${ownedCount - 1} more`} tone="inverse" /> : null}
           </View>
-        )}
-        <Ionicons name="chevron-forward" size={20} color="#64748b" />
+        </View>
       </View>
-    </TouchableOpacity>
-  );
-
-  const renderSettingItem = (title, value, onToggle) => (
-    <View style={styles.settingItem}>
-      <Text style={styles.settingTitle}>{title}</Text>
-      <Switch
-        value={value}
-        onValueChange={onToggle}
-        trackColor={{ false: '#e2e8f0', true: '#E6F1FB' }}
-        thumbColor={value ? '#1B4F72' : '#fff'}
-      />
-    </View>
+      <View style={styles.stats}>
+        <StatTile value={String(products)} label="Products" inverse />
+        <StatTile value={compact(business.views)} label="Views" inverse />
+        <StatTile value={received ? String(received.count) : '–'} label="Payments" inverse />
+        <StatTile value={String(orderCount)} label="My orders" inverse />
+      </View>
+    </>
+  ) : (
+    <>
+      <View style={styles.profileRow}>
+        <View style={[styles.avatarRing, styles.guestAvatar]}>
+          <Ionicons name="person" size={32} color={colors.primary} />
+        </View>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={[type.h2, { color: colors.onPrimary }]}>Welcome to Vendora</Text>
+          <Text style={[type.small, { color: colors.onPrimaryMuted }]}>Browsing as a guest</Text>
+        </View>
+      </View>
+      <View style={styles.stats}>
+        <StatTile value={String(orderCount)} label="My orders" inverse />
+      </View>
+    </>
   );
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Profile Header */}
-      <LinearGradient
-        colors={['#1B4F72', '#2E86C1']}
-        style={styles.headerSection}
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: spacing.xxxl }}>
+      <GradientHeader
+        compact
+        title="Account"
+        image={isOwner ? coverPhoto : undefined}
+        light={!!coverPhoto}
+        right={
+          <IconButton icon="refresh" color={colors.onPrimary} background="rgba(255,255,255,0.14)" accessibilityLabel="Refresh" onPress={load} />
+        }
       >
-        <View style={styles.profileHeader}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {user.name.split(' ').map(n => n[0]).join('')}
-            </Text>
+        {loading ? <ActivityIndicator color={colors.onPrimary} style={{ marginTop: spacing.xl }} /> : header}
+      </GradientHeader>
+
+      {!loading && isOwner ? (
+        <>
+          {/* Real business details */}
+          <View style={styles.section}>
+            <Card>
+              <View style={styles.cardHead}>
+                <Text style={[type.h3, { color: colors.text, flexShrink: 1 }]}>Business details</Text>
+                {business.offline ? (
+                  <Badge label="Offline" tone="warning" icon="cloud-offline-outline" />
+                ) : business.verified ? (
+                  <Badge label="Verified" tone="success" icon="checkmark-circle" />
+                ) : (
+                  <Badge label="Pending" tone="warning" icon="time-outline" />
+                )}
+              </View>
+              {[
+                business.email && { icon: 'mail-outline', value: business.email },
+                business.phoneNumber && { icon: 'call-outline', value: business.phoneNumber },
+                place && { icon: 'location-outline', value: place },
+                business.category && { icon: 'pricetag-outline', value: titleCase(business.category) },
+                business.createdAt && { icon: 'calendar-outline', value: `On Vendora since ${monthYear(business.createdAt)}` },
+                { icon: 'wallet-outline', value: business.acceptsPayments ? 'Accepting MoMo payments' : 'Not accepting MoMo payments yet' },
+              ].filter(Boolean).map((row) => (
+                <View key={row.icon} style={styles.infoRow}>
+                  <Ionicons name={row.icon} size={18} color={colors.textMuted} />
+                  <Text style={[type.body, { color: colors.textSecondary, flex: 1 }]} numberOfLines={2}>{row.value}</Text>
+                </View>
+              ))}
+              <Button title="Open my business page" icon="storefront-outline" variant="secondary" size="md" onPress={openMyBusiness} style={{ marginTop: spacing.md }} />
+            </Card>
           </View>
-          <View style={styles.profileInfo}>
-            <Text style={styles.userName}>{user.name}</Text>
-            <Text style={styles.businessName}>{user.businessName}</Text>
-            <View style={styles.planBadge}>
-              <Text style={styles.planText}>{user.plan} Plan</Text>
+
+          {/* Monthly listing: free month / paid / due / hidden */}
+          {!business.offline && !business.verified ? (
+            <View style={styles.section}>
+              <PendingApprovalCard phone={business.phoneNumber} />
             </View>
-          </View>
-        </View>
-        
-        <View style={styles.statsGrid}>
-          {stats.map(renderStatItem)}
-        </View>
-      </LinearGradient>
+          ) : business.listing ? (
+            <View style={styles.section}>
+              <ListingStatusCard
+                listing={business.listing}
+                onPay={() => navigation.navigate('Payment', { business: { id: String(business._id), name: business.businessName } })}
+              />
+            </View>
+          ) : null}
+        </>
+      ) : null}
 
-      {/* Business Info Card */}
-      <View style={styles.businessCard}>
-        <Text style={styles.cardTitle}>Business Information</Text>
-        <View style={styles.infoGrid}>
-          <View style={styles.infoItem}>
-            <Ionicons name="mail-outline" size={16} color="#64748b" />
-            <Text style={styles.infoText}>{user.email}</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <Ionicons name="phone-portrait-outline" size={16} color="#64748b" />
-            <Text style={styles.infoText}>{user.phone}</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <Ionicons name="location-outline" size={16} color="#64748b" />
-            <Text style={styles.infoText}>{user.location}</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <Ionicons name="briefcase-outline" size={16} color="#64748b" />
-            <Text style={styles.infoText}>{user.businessCategory}</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <Ionicons name="calendar-outline" size={16} color="#64748b" />
-            <Text style={styles.infoText}>Member since {user.memberSince}</Text>
-          </View>
+      {!loading && !isOwner ? (
+        <View style={styles.section}>
+          <Card style={styles.upgrade} onPress={() => navigation.navigate('Main', { screen: 'Register' })} accessibilityLabel="List your business free">
+            <View style={styles.upgradeIcon}>
+              <Ionicons name="storefront" size={20} color={colors.onPrimary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[type.title, { color: colors.primary }]}>Own a business?</Text>
+              <Text style={[type.small, { color: colors.textSecondary }]}>List it free and get customers paying you with MoMo.</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.primary} />
+          </Card>
         </View>
+      ) : null}
+
+      {/* Shopping */}
+      <View style={styles.section}>
+        <Text style={[type.overline, styles.groupTitle]}>Shopping</Text>
+        <Card padded={false} style={{ overflow: 'hidden' }}>
+          <ListRow
+            icon="receipt-outline"
+            title="My orders"
+            subtitle={orderCount ? `${orderCount} payment${orderCount === 1 ? '' : 's'} made from this phone` : 'Payments you made to businesses'}
+            onPress={() => navigation.navigate('MyOrders')}
+          />
+          <ListRow icon="compass-outline" title="Explore businesses" subtitle="Find sellers near you" onPress={() => navigation.navigate('Browse')} last />
+        </Card>
       </View>
 
-      {/* Menu Items */}
-      <View style={styles.menuSection}>
-        <Text style={styles.sectionTitle}>Account</Text>
-        {menuItems.slice(0, 4).map(renderMenuItem)}
-      </View>
-
-      <View style={styles.menuSection}>
-        <Text style={styles.sectionTitle}>Business Tools</Text>
-        {menuItems.slice(4, 7).map(renderMenuItem)}
-      </View>
-
-      {/* Settings */}
-      <View style={styles.settingsSection}>
-        <Text style={styles.sectionTitle}>Settings</Text>
-        <View style={styles.settingsCard}>
-          {renderSettingItem('Push Notifications', notifications, setNotifications)}
-          {renderSettingItem('Location Services', locationServices, setLocationServices)}
-          {renderSettingItem('Dark Mode', darkMode, setDarkMode)}
-        </View>
+      {/* Business */}
+      <View style={styles.section}>
+        <Text style={[type.overline, styles.groupTitle]}>For business owners</Text>
+        <Card padded={false} style={{ overflow: 'hidden' }}>
+          <ListRow
+            icon="key-outline"
+            title="Manage my business"
+            subtitle={ownedCount ? `${ownedCount} business${ownedCount === 1 ? '' : 'es'} on this phone` : 'Products, MoMo payments and listing'}
+            onPress={() => navigation.navigate('ManageBusiness')}
+            last={!isOwner}
+          />
+          {isOwner ? (
+            <ListRow
+              icon="wallet-outline"
+              title="MoMo payments"
+              subtitle={received && received.count ? `${received.count} received · ${formatGhs(received.total)}` : business.acceptsPayments ? 'No payments yet' : 'Set up to receive payments'}
+              onPress={openPayouts}
+            />
+          ) : null}
+          {isOwner ? (
+            <ListRow icon="pricetags-outline" title="Pricing" subtitle="Monthly price by business type" onPress={() => navigation.navigate('Pricing')} last />
+          ) : null}
+        </Card>
       </View>
 
       {/* Support */}
-      <View style={styles.menuSection}>
-        <Text style={styles.sectionTitle}>Support</Text>
-        {menuItems.slice(7).map(renderMenuItem)}
+      <View style={styles.section}>
+        <Text style={[type.overline, styles.groupTitle]}>Support</Text>
+        <Card padded={false} style={{ overflow: 'hidden' }}>
+          <ListRow icon="help-buoy-outline" title="Help & support" subtitle="Questions, contact us, report a problem" onPress={() => navigation.navigate('Help')} />
+          <ListRow icon="document-text-outline" title="Terms & privacy" subtitle="Terms of Use and Privacy Policy" onPress={() => navigation.navigate('Legal')} last />
+        </Card>
       </View>
 
-      {/* Logout Button */}
-      <View style={styles.logoutSection}>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={20} color="#ef4444" />
-          <Text style={styles.logoutButtonText}>Sign Out</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* App Version */}
-      <View style={styles.versionSection}>
-        <Text style={styles.versionText}>VENDORA AFRICA v1.0.0</Text>
-        <Text style={styles.versionSubtext}>Built for Africa, by Africa</Text>
+      <View style={styles.footer}>
+        <Text style={[type.caption, { color: colors.textMuted }]}>Vendora Africa · Version 1.0.0</Text>
+        <Text style={[type.caption, { color: colors.placeholder }]}>Built for Africa, by Africa</Text>
       </View>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8fafc',
-  },
-  headerSection: {
-    paddingTop: 60,
-    paddingBottom: 30,
-    paddingHorizontal: 20,
-  },
-  profileHeader: {
+  container: { flex: 1, backgroundColor: colors.background },
+  profileRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, marginTop: spacing.xl },
+  avatarRing: { padding: 3, borderRadius: 40, backgroundColor: 'rgba(255,255,255,0.25)' },
+  verifyNote: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, marginTop: spacing.md, padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.primarySoft },
+  ownerPhoto: { width: 64, height: 64, borderRadius: 32, overflow: 'hidden' },
+  guestAvatar: { width: 70, height: 70, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface },
+  stats: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xl },
+  section: { paddingHorizontal: spacing.gutter, marginTop: spacing.xl },
+  cardHead: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm, marginBottom: spacing.sm },
+  infoRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
+  upgrade: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
+    gap: spacing.md,
+    backgroundColor: colors.primarySoft,
+    borderColor: colors.primaryMuted,
   },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  avatarText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  profileInfo: {
-    flex: 1,
-  },
-  userName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  businessName: {
-    fontSize: 16,
-    color: '#B5D4F4',
-    marginBottom: 8,
-  },
-  planBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
-  },
-  planText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  statItem: {
-    width: '48%',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#B5D4F4',
-    textAlign: 'center',
-  },
-  businessCard: {
-    backgroundColor: '#fff',
-    margin: 20,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1B4F72',
-    marginBottom: 16,
-  },
-  infoGrid: {
-    gap: 12,
-  },
-  infoItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  infoText: {
-    fontSize: 14,
-    color: '#64748b',
-    marginLeft: 12,
-  },
-  menuSection: {
-    backgroundColor: '#fff',
-    marginTop: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1B4F72',
-    marginBottom: 16,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-  },
-  menuLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  menuIcon: {
+  upgradeIcon: {
     width: 40,
     height: 40,
-    backgroundColor: '#E6F1FB',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  menuContent: {
-    flex: 1,
-  },
-  menuTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1B4F72',
-    marginBottom: 2,
-  },
-  menuSubtitle: {
-    fontSize: 12,
-    color: '#64748b',
-  },
-  menuRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  menuBadge: {
-    backgroundColor: '#ef4444',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 10,
-    marginRight: 12,
-  },
-  menuBadgeText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  settingsSection: {
-    paddingHorizontal: 20,
-    marginTop: 20,
-  },
-  settingsCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  settingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  settingItem:last-child {
-    borderBottomWidth: 0,
-  },
-  settingTitle: {
-    fontSize: 16,
-    color: '#0f172a',
-  },
-  logoutSection: {
-    paddingHorizontal: 20,
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  logoutButton: {
-    flexDirection: 'row',
+    borderRadius: radius.sm + 2,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
-    paddingVertical: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#ef4444',
   },
-  logoutButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#ef4444',
-    marginLeft: 8,
-  },
-  versionSection: {
-    alignItems: 'center',
-    paddingBottom: 40,
-  },
-  versionText: {
-    fontSize: 14,
-    color: '#64748b',
-    marginBottom: 4,
-  },
-  versionSubtext: {
-    fontSize: 12,
-    color: '#94a3b8',
-  },
+  groupTitle: { color: colors.textMuted, marginBottom: spacing.sm, marginLeft: spacing.xs },
+  footer: { alignItems: 'center', gap: 2, marginTop: spacing.xxl },
 });
 
 export default ProfileScreen;

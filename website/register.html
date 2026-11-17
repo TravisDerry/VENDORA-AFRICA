@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light only">
+  <title>List your business — Vendora Africa</title>
+  <meta name="description" content="List your business on Vendora Africa for free. Our team approves it and your first month is free.">
+  <link rel="icon" href="/assets/img/favicon.png">
+  <link rel="stylesheet" href="/assets/css/site.css">
+</head>
+<body>
+  <section class="page-hero">
+    <div class="wrap">
+      <span class="eyebrow">Free registration</span>
+      <h1>List your business</h1>
+      <p>Takes about 2 minutes. No card needed. Our team approves your business, then your first month is free.</p>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:32px">
+    <div class="wrap layout">
+      <div class="card card-pad" id="formCard">
+        <form class="form" id="regForm" novalidate>
+          <h2 style="font-size:24px">Your details</h2>
+          <div class="form-row">
+            <label class="field">First name<input class="input" name="firstName" autocomplete="given-name" required></label>
+            <label class="field">Last name<input class="input" name="lastName" autocomplete="family-name" required></label>
+          </div>
+          <div class="form-row">
+            <label class="field">Phone number<input class="input" name="phoneNumber" type="tel" placeholder="024 123 4567" autocomplete="tel" required><small>We call this number to approve your business.</small></label>
+            <label class="field">Email address<input class="input" name="email" type="email" placeholder="you@business.com" autocomplete="email" required></label>
+          </div>
+
+          <h2 style="font-size:24px;margin-top:10px">Your business</h2>
+          <label class="field">Business name<input class="input" name="businessName" placeholder="e.g. Ama's Kitchen" required></label>
+          <div class="form-row">
+            <label class="field">Category<select class="input" name="businessCategory" id="categorySelect" required><option value="">Choose a category</option></select><small id="priceHint">Your monthly price depends on your category.</small></label>
+            <label class="field">Country<select class="input" name="country" required>
+              <option value="ghana">Ghana</option><option value="nigeria">Nigeria</option><option value="kenya">Kenya</option><option value="senegal">Senegal</option><option value="ivory coast">Côte d'Ivoire</option><option value="other">Other</option>
+            </select></label>
+          </div>
+          <div class="form-row">
+            <label class="field">Town / city<input class="input" name="city" placeholder="e.g. Accra"></label>
+            <label class="field">Address or landmark <small>(optional)</small><input class="input" name="address" placeholder="e.g. Osu, near the market"></label>
+          </div>
+          <label class="field">What do you sell? <small>(optional)</small><textarea class="input" name="businessDescription" maxlength="500" placeholder="Tell customers about your business"></textarea></label>
+          <label class="check"><input type="checkbox" name="terms"> <span>I agree to the <a href="/legal.html" target="_blank">Terms of Use</a> and <a href="/legal.html#privacy" target="_blank">Privacy Policy</a>, and confirm this is a real business I run.</span></label>
+          <p class="error" id="regError" role="alert"></p>
+          <button class="btn btn-primary btn-lg btn-block" type="submit" id="regBtn">Create my free listing</button>
+        </form>
+      </div>
+      <aside class="side">
+        <div class="card card-pad">
+          <h3>What happens next</h3>
+          <div class="step" style="padding:12px 0 0"><div class="step-num">1</div><div><h3>You get an owner key</h3><p>Use it to manage your business on this website or in the app.</p></div></div>
+          <div class="step" style="padding:12px 0 0"><div class="step-num">2</div><div><h3>We call to approve you</h3><p>Meanwhile, add products, photos and opening hours.</p></div></div>
+          <div class="step" style="padding:12px 0 0"><div class="step-num">3</div><div><h3>You go live</h3><p>Customers find you, and your free month starts.</p></div></div>
+        </div>      </aside>
+    </div>
+  </section>
+
+  <script src="/assets/js/common.js"></script>
+  <script src="/assets/js/register.js"></script>
+</body>
+</html>

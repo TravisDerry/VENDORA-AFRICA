@@ -1,0 +1,39 @@
+# Render "Blueprint": hosts the Vendora backend (API + website + /admin page).
+# In Render: New > Blueprint > pick this repository. Render asks for each value marked
+# `sync: false` (secrets are typed into Render, never stored in this file).
+services:
+  - type: web
+    name: vendora-api
+    runtime: node
+    rootDir: backend
+    plan: starter # always on; the free plan sleeps after 15 minutes and wakes slowly
+    region: frankfurt # closest Render region to West Africa
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "20"
+      - key: TRUST_PROXY
+        value: "1"
+      - key: JWT_SECRET
+        generateValue: true # Render creates a long random secret
+      - key: MONGODB_URI
+        sync: false # mongodb+srv://... from MongoDB Atlas
+      - key: ADMIN_PASSWORD
+        sync: false # at least 10 characters
+      - key: PAYSTACK_SECRET_KEY
+        sync: false # sk_live_... for real payments
+      - key: CLOUDINARY_URL
+        sync: false # cloudinary://<api_key>:<api_secret>@<cloud_name>
+      - key: SUPPORT_PHONE
+        sync: false
+      - key: SUPPORT_WHATSAPP
+        sync: false
+      - key: SUPPORT_EMAIL
+        sync: false
+      - key: SUPPORT_HOURS
+        sync: false

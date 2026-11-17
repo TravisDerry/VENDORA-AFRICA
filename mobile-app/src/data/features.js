@@ -1,0 +1,75 @@
+// Content for the four "Why Vendora Africa" pages opened from the Home screen.
+// Keep claims accurate: plan payments are live (Paystack); paying businesses for orders in-app is not.
+import { AFRICA_IMAGES } from './images';
+
+export const FEATURES = {
+  register: {
+    icon: 'gift',
+    accent: '#F5C451',
+    image: AFRICA_IMAGES.entrepreneur,
+    aspect: 1080 / 721,
+    focus: { x: 0.5, y: 0.35 },
+    eyebrow: 'Free to register',
+    title: 'Get your business listed at no cost',
+    intro: 'Create your Vendora Africa profile for free. There are no sign-up fees and no card needed. We check every new business before it goes live, so customers can trust what they see.',
+    points: [
+      { icon: 'time-outline', title: 'Takes about 2 minutes', text: 'Add your name, business name, phone, category and location.' },
+      { icon: 'search-outline', title: 'Be found by customers', text: 'Once approved, your business appears on Home, Explore and in search for your category.' },
+      { icon: 'pricetags-outline', title: 'Add your products', text: 'List what you sell with prices, so buyers know before they call.' },
+      { icon: 'call-outline', title: 'Customers contact you directly', text: 'Buyers can call, message or get directions to you in one tap.' },
+    ],
+    cta: { title: 'Register your business free', icon: 'add-circle-outline', screen: 'Register' },
+  },
+  momo: {
+    icon: 'wallet',
+    accent: '#9BE07A',
+    image: AFRICA_IMAGES.mobileMoney,
+    aspect: 720 / 405,
+    focus: { x: 0.55, y: 0.45 },
+    eyebrow: 'Mobile Money',
+    title: 'Get paid the way Africa pays',
+    intro: 'Customers already pay with Mobile Money. Vendora Africa is built around it.',
+    points: [
+      { icon: 'chatbubble-ellipses-outline', title: 'Today: agree payment directly', text: 'Customers call or message you, then pay to your MoMo number as usual.' },
+      { icon: 'phone-portrait-outline', title: 'Customers pay you with MoMo', text: 'MTN MoMo, Telecel Cash and AirtelTigo Money, straight to your own wallet.' },
+      { icon: 'time-outline', title: 'Order checkout: coming soon', text: 'Paying businesses for products inside the app is being prepared.' },
+      { icon: 'shield-checkmark-outline', title: 'Stay safe', text: 'Only pay businesses you trust, and confirm the name on the MoMo account first.' },
+    ],
+    cta: { title: 'See pricing', icon: 'wallet-outline', screen: 'Pricing' },
+  },
+  instore: {
+    icon: 'storefront',
+    accent: '#FFB870',
+    image: AFRICA_IMAGES.marketSenegal,
+    aspect: 1080 / 720,
+    focus: { x: 0.45, y: 0.4 },
+    eyebrow: 'Online & in-store',
+    title: 'Reach customers online and at your shop',
+    intro: 'Your Vendora profile works like a shop window on every phone, and it brings people to your physical location.',
+    points: [
+      { icon: 'globe-outline', title: 'Online shop window', text: 'Your business, products and prices are visible to anyone browsing.' },
+      { icon: 'navigate-outline', title: 'Directions to your shop', text: 'Customers open your location in maps with one tap.' },
+      { icon: 'call-outline', title: 'Call or message', text: 'Buyers reach you directly; no middleman.' },
+      { icon: 'share-social-outline', title: 'Share your profile', text: 'Send your listing on WhatsApp and social media.' },
+    ],
+    cta: { title: 'Explore businesses', icon: 'compass-outline', screen: 'Browse' },
+    secondary: { title: 'List your business', screen: 'Register' },
+  },
+  insights: {
+    icon: 'trending-up',
+    accent: '#C9B5FF',
+    image: AFRICA_IMAGES.vendor,
+    aspect: 1080 / 1620,
+    focus: { x: 0.45, y: 0.55 },
+    eyebrow: 'Sales insights',
+    title: 'Know what sells and grow with confidence',
+    intro: 'See how customers find you and keep track of your stock, so you can plan with real numbers.',
+    points: [
+      { icon: 'eye-outline', title: 'Profile views', text: 'See how many people looked at your business.' },
+      { icon: 'wallet-outline', title: 'Payments received', text: 'See who paid you with MoMo, for what, and any note they left.' },
+      { icon: 'cube-outline', title: 'In stock or sold out', text: 'Mark products as available or out of stock so customers know before they call.' },
+      { icon: 'ribbon-outline', title: 'Included for every business', text: 'One simple monthly listing, with your first month free. No extra plans to buy.' },
+    ],
+    cta: { title: 'See pricing', icon: 'pricetag-outline', screen: 'Pricing' },
+  },
+};
