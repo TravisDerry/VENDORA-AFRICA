@@ -15,14 +15,12 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.vendoraafrica.app",
-      "buildNumber": "1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "package": "com.vendoraafrica.app",
-      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1B4F72"
