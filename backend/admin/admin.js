@@ -33,12 +33,35 @@
   };
   // replaceChildren without the empty (null/false) entries
   const fill = (node, ...kids) => node.replaceChildren(...kids.flat().filter((k) => k !== null && k !== undefined && k !== false));
-  const ghs = (n) => `GHS ${Number(n || 0).toLocaleString('en-GH', { maximumFractionDigits: 2 })}`;
+  const ghs = (n) => { const v = Number(n || 0); return `GHS ${v.toLocaleString('en-GH', { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 })}`; };
   const when = (d) => (d ? new Date(d).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '');
   const day = (d) => (d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
   const digits = (p) => String(p || '').replace(/[^\d]/g, '').replace(/^0/, '233');
   const toast = (msg) => { const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(t._h); t._h = setTimeout(() => { t.hidden = true; }, 2800); };
   const modal = (...content) => { fill($('modalBody'), ...content); $('modal').hidden = false; };
+  // Line icons (24x24, drawn with the current text colour). Built with createElementNS: no innerHTML.
+  const ICON_PATHS = {
+    shield: ['M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z', 'M9 12l2 2 4-4'],
+    message: ['M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z', 'M8 11h8', 'M8 14h5'],
+    clock: ['M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18z', 'M12 7v5l3 2'],
+    store: ['M3 9l2-5h14l2 5', 'M3 9h18', 'M5 9v11h14V9', 'M10 20v-6h4v6'],
+    verified: ['M12 3l2.4 1.8 3-.2.9 2.9 2.5 1.7-1 2.8 1 2.8-2.5 1.7-.9 2.9-3-.2L12 21l-2.4-1.8-3 .2-.9-2.9-2.5-1.7 1-2.8-1-2.8 2.5-1.7.9-2.9 3 .2z', 'M9 12l2 2 4-4'],
+    gift: ['M4 11h16v9H4z', 'M3 7h18v4H3z', 'M12 7v13', 'M12 7C10.5 4 7 4 7 6s3 1 5 1c1.5-3 5-3 5-1s-3 1-5 1'],
+    card: ['M3 6h18v12H3z', 'M3 10h18', 'M7 15h4'],
+    hidden: ['M3 3l18 18', 'M10.6 6.1A9.8 9.8 0 0 1 12 6c5 0 9 6 9 6a15 15 0 0 1-2.6 3.2', 'M6.6 7.6C4.4 9.1 3 12 3 12s4 6 9 6a9 9 0 0 0 4-.9', 'M9.9 9.9a3 3 0 0 0 4.2 4.2'],
+    wallet: ['M3 7h15a3 3 0 0 1 3 3v8H3z', 'M3 7l12-3v3', 'M16 13h2'],
+    bag: ['M5 8h14l-1 12H6z', 'M9 8V6a3 3 0 0 1 6 0v2'],
+    arrow: ['M5 12h14', 'M13 6l6 6-6 6'],
+  };
+  const icon = (name, size = 20) => {
+    const NS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(NS, 'svg');
+    [['viewBox', '0 0 24 24'], ['width', size], ['height', size], ['fill', 'none'], ['stroke', 'currentColor'],
+      ['stroke-width', '1.8'], ['stroke-linecap', 'round'], ['stroke-linejoin', 'round'], ['aria-hidden', 'true']]
+      .forEach(([k, v]) => svg.setAttribute(k, v));
+    (ICON_PATHS[name] || []).forEach((d) => { const path = document.createElementNS(NS, 'path'); path.setAttribute('d', d); svg.append(path); });
+    return svg;
+  };
   const loading = (box) => fill(box, el('p', { class: 'muted', text: 'Loading…' }));
   const failed = (box, err) => fill(box, el('p', { class: 'error', text: err.message }));
   $('modalClose').addEventListener('click', () => { $('modal').hidden = true; });
@@ -114,14 +137,26 @@
       const s = await api('/summary');
       setBadge('pendingBadge', s.pendingVerification);
       setBadge('supportBadge', s.openSupport);
-      // Colour-coded number cards: tone sets the icon/accent colour; "go" makes the card open a section
-      const stat = (value, label, opts = {}) => el('div', {
-        class: `stat tone-${opts.tone || 'navy'}${opts.go ? ' clickable' : ''}`,
-        onclick: opts.go, role: opts.go ? 'button' : null, tabindex: opts.go ? '0' : null,
-      },
-      el('div', { class: 'stat-icon', 'aria-hidden': 'true', text: opts.icon || '•' }),
-      el('div', { class: 'stat-body' }, el('b', { text: value }), el('span', { text: label })),
-      opts.go ? el('div', { class: 'stat-go', 'aria-hidden': 'true', text: '›' }) : null);
+      // Number card: label + icon on top, the figure, then a footer (status note and/or "View" link).
+      // tone sets the icon colour; "go" makes the whole card open a section.
+      const stat = (value, label, opts = {}) => {
+        const card = el('div', {
+          class: `stat tone-${opts.tone || 'navy'}${opts.go ? ' clickable' : ''}`,
+          onclick: opts.go, role: opts.go ? 'button' : null, tabindex: opts.go ? '0' : null,
+          'aria-label': opts.go ? `${label}: ${value}. Open` : null,
+        },
+        el('div', { class: 'stat-top' },
+          el('span', { class: 'stat-label', text: label }),
+          el('div', { class: 'stat-icon' }, icon(opts.icon))),
+        el('div', { class: 'stat-value', text: value }),
+        (opts.note || opts.go) ? el('div', { class: 'stat-foot' },
+          opts.note ? el('span', { class: `stat-note note-${opts.noteTone || 'muted'}`, text: opts.note }) : el('span'),
+          opts.go ? el('span', { class: 'stat-link' }, 'View', icon('arrow', 14)) : null) : null);
+        if (opts.go) card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); opts.go(); } });
+        return card;
+      };
+      // Footer for the "needs attention" cards
+      const attention = (n) => (n ? { note: 'Action needed', noteTone: 'amber' } : { note: 'All clear', noteTone: 'green' });
 
       const hour = new Date().getHours();
       const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
@@ -135,27 +170,27 @@
         el('div', { class: 'welcome' },
           el('div', {},
             el('div', { class: 'welcome-date', text: new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }),
-            el('h2', { text: `${greeting} 👋` }),
+            el('h2', { text: greeting }),
             el('p', { text: todo.length ? `Today: ${todo.join(' · ')}.` : 'Everything is up to date. Nothing needs your attention right now.' })),
           el('div', { class: 'welcome-figures' },
             el('div', {}, el('b', { text: s.businesses }), el('span', { text: 'Businesses' })),
             el('div', {}, el('b', { text: ghs(s.listingRevenue.total) }), el('span', { text: 'Earned' })))),
         el('div', { class: 'section-title', text: 'Needs your attention' }),
         el('div', { class: 'stats attention' },
-          stat(s.pendingVerification, 'Waiting for verification', { tone: s.pendingVerification ? 'amber' : 'green', icon: '🛡️', go: () => go('businesses', { filter: 'pending' }) }),
-          stat(s.openSupport, 'Open support messages', { tone: s.openSupport ? 'amber' : 'green', icon: '💬', go: () => go('support', { status: 'open' }) }),
-          stat(s.listing.grace, 'Payment overdue (grace)', { tone: s.listing.grace ? 'red' : 'green', icon: '⏰' })),
+          stat(s.pendingVerification, 'Waiting for verification', { tone: s.pendingVerification ? 'amber' : 'green', icon: 'shield', ...attention(s.pendingVerification), go: () => go('businesses', { filter: 'pending' }) }),
+          stat(s.openSupport, 'Open support messages', { tone: s.openSupport ? 'amber' : 'green', icon: 'message', ...attention(s.openSupport), go: () => go('support', { status: 'open' }) }),
+          stat(s.listing.grace, 'Payment overdue (grace)', { tone: s.listing.grace ? 'red' : 'green', icon: 'clock', ...(s.listing.grace ? { note: 'Follow up', noteTone: 'red' } : { note: 'All clear', noteTone: 'green' }) })),
         el('div', { class: 'section-title', text: 'Businesses' }),
         el('div', { class: 'stats biz-stats' },
-          stat(s.businesses, 'Total businesses', { tone: 'navy', icon: '🏪', go: () => go('businesses', { filter: 'all' }) }),
-          stat(s.verified, 'Verified', { tone: 'green', icon: '✅', go: () => go('businesses', { filter: 'verified' }) }),
-          stat(s.listing.trial, 'In free month', { tone: 'blue', icon: '🎁' }),
-          stat(s.listing.active, 'Paid & active', { tone: 'green', icon: '💳' }),
-          stat(s.listing.expired, 'Hidden (unpaid)', { tone: s.listing.expired ? 'red' : 'grey', icon: '🙈' })),
+          stat(s.businesses, 'Total businesses', { tone: 'navy', icon: 'store', go: () => go('businesses', { filter: 'all' }) }),
+          stat(s.verified, 'Verified', { tone: 'green', icon: 'verified', go: () => go('businesses', { filter: 'verified' }) }),
+          stat(s.listing.trial, 'In free month', { tone: 'blue', icon: 'gift' }),
+          stat(s.listing.active, 'Paid & active', { tone: 'green', icon: 'card' }),
+          stat(s.listing.expired, 'Hidden (unpaid)', { tone: s.listing.expired ? 'red' : 'grey', icon: 'hidden' })),
         el('div', { class: 'section-title', text: 'Money · real payments only' }),
         el('div', { class: 'stats money-row' },
-          stat(ghs(s.listingRevenue.total), `Listing fees to Vendora · ${s.listingRevenue.count} payment${s.listingRevenue.count === 1 ? '' : 's'}`, { tone: 'green', icon: '💰' }),
-          stat(ghs(s.customerPayments.total), `Customers paid businesses · ${s.customerPayments.count}`, { tone: 'purple', icon: '🛍️', go: () => go('payments') })),
+          stat(ghs(s.listingRevenue.total), 'Listing fees to Vendora', { tone: 'green', icon: 'wallet', note: `${s.listingRevenue.count} payment${s.listingRevenue.count === 1 ? '' : 's'}` }),
+          stat(ghs(s.customerPayments.total), 'Customers paid businesses', { tone: 'purple', icon: 'bag', note: `${s.customerPayments.count} payment${s.customerPayments.count === 1 ? '' : 's'}`, go: () => go('payments') })),
         s.testPayments ? el('p', { class: 'muted small', text: `${s.testPayments} test-mode payment(s) are not counted.` }) : null,
       );
     } catch (err) {
@@ -176,16 +211,16 @@
     const [label, tone] = map[l?.status] || ['Active', 'green'];
     return el('span', { class: `tag ${tone}`, text: l?.daysLeft != null && l.status !== 'expired' ? `${label} · ${l.daysLeft}d` : label });
   };
-  const statusTag = (b) => (b.verified ? el('span', { class: 'tag green', text: '✓ Verified' }) : el('span', { class: 'tag amber', text: 'Waiting' }));
+  const statusTag = (b) => (b.verified ? el('span', { class: 'tag green', text: 'Verified' }) : el('span', { class: 'tag amber', text: 'Waiting' }));
 
   const bizActions = (b) => {
     const phone = digits(b.phone);
     return el('div', { class: 'actions' },
-      phone ? el('a', { href: `tel:+${phone}`, text: '📞 Call' }) : null,
-      phone ? el('a', { class: 'wa', href: `https://wa.me/${phone}?text=${encodeURIComponent(`Hello ${b.ownerName || ''}, this is Vendora Africa. We'd like to confirm your business "${b.name}" so it can get the Verified badge.`)}`, target: '_blank', rel: 'noopener', text: '💬 WhatsApp' }) : null,
+      phone ? el('a', { href: `tel:+${phone}`, text: 'Call' }) : null,
+      phone ? el('a', { class: 'wa', href: `https://wa.me/${phone}?text=${encodeURIComponent(`Hello ${b.ownerName || ''}, this is Vendora Africa. We'd like to confirm your business "${b.name}" so it can get the Verified badge.`)}`, target: '_blank', rel: 'noopener', text: 'WhatsApp' }) : null,
       b.verified
         ? el('button', { class: 'danger', text: 'Remove badge', onclick: () => setVerified(b, false) })
-        : el('button', { class: 'success', text: '✓ Verify', onclick: () => askVerify(b) }),
+        : el('button', { class: 'success', text: 'Verify', onclick: () => askVerify(b) }),
       el('button', { class: 'outline', text: 'New owner key', onclick: () => newKey(b) }));
   };
 
@@ -223,7 +258,7 @@
       const q = $('bizSearch').value.trim();
       const { businesses } = await api(`/businesses?filter=${bizFilter}${q ? `&search=${encodeURIComponent(q)}` : ''}`);
       if (!businesses.length) {
-        fill(box, el('p', { class: 'empty', text: bizFilter === 'pending' && !q ? 'No businesses waiting to be checked. 🎉' : 'No businesses found.' }));
+        fill(box, el('p', { class: 'empty', text: bizFilter === 'pending' && !q ? 'No businesses waiting to be checked.' : 'No businesses found.' }));
         return;
       }
       fill(box,
@@ -242,9 +277,9 @@
     const note = el('textarea', { placeholder: 'Optional note for your records, e.g. "Called owner, visited shop in Osu"' });
     modal(
       el('h2', { text: `Verify ${biz.name}?` }),
-      el('p', { class: 'muted small', text: 'Only verify after checking the business is real (call, visit or a photo of the shop). Customers will see the ✓ badge.' }),
+      el('p', { class: 'muted small', text: 'Only verify after checking the business is real (call, visit or a photo of the shop). Customers will see the Verified badge.' }),
       el('label', { text: 'Note (private)' }), note,
-      el('button', { class: 'success full', text: '✓ Yes, verify', onclick: async (e) => { e.target.disabled = true; await setVerified(biz, true, note.value); $('modal').hidden = true; } }),
+      el('button', { class: 'success full', text: 'Yes, verify', onclick: async (e) => { e.target.disabled = true; await setVerified(biz, true, note.value); $('modal').hidden = true; } }),
     );
     note.focus();
   }
@@ -253,7 +288,7 @@
     if (!on && !confirm(`Remove the Verified badge from ${biz.name}?`)) return;
     try {
       const { business } = await api(`/businesses/${biz.id}/${on ? 'verify' : 'unverify'}`, { method: 'POST', body: JSON.stringify({ note: note || '' }) });
-      toast(on ? `${business.name} is now Verified ✓` : `Badge removed from ${business.name}`);
+      toast(on ? `${business.name} is now Verified` : `Badge removed from ${business.name}`);
       loadBusinesses();
       refreshBadges();
     } catch (err) {
@@ -273,7 +308,7 @@
         el('div', { class: 'key', text: ownerKey }),
         el('div', { class: 'actions' },
           el('button', { class: 'outline', text: 'Copy key', onclick: async () => { try { await navigator.clipboard.writeText(ownerKey); toast('Copied'); } catch (e) { toast('Select the key and copy it'); } } }),
-          phone ? el('a', { class: 'wa', href: `https://wa.me/${phone}?text=${encodeURIComponent(text)}`, target: '_blank', rel: 'noopener', text: '💬 Send on WhatsApp' }) : null),
+          phone ? el('a', { class: 'wa', href: `https://wa.me/${phone}?text=${encodeURIComponent(text)}`, target: '_blank', rel: 'noopener', text: 'Send on WhatsApp' }) : null),
       );
     } catch (err) {
       toast(err.message);
@@ -294,7 +329,7 @@
     loading(box);
     try {
       const { requests } = await api(`/support?status=${supportStatus}`);
-      if (!requests.length) { fill(box, el('p', { class: 'empty', text: supportStatus === 'open' ? 'No open messages. 🎉' : 'No messages yet.' })); return; }
+      if (!requests.length) { fill(box, el('p', { class: 'empty', text: supportStatus === 'open' ? 'No open messages.' : 'No messages yet.' })); return; }
       fill(box, el('div', { class: 'grid2' }, requests.map(supportCard)));
     } catch (err) {
       failed(box, err);
@@ -313,9 +348,9 @@
         el('div', { class: 'msg', text: r.message }),
         el('div', { class: 'meta', text: `Reply to: ${[r.phone, r.email].filter(Boolean).join(' · ')}` }),
         el('div', { class: 'actions' },
-          phone ? el('a', { href: `tel:+${phone}`, text: '📞 Call' }) : null,
-          phone ? el('a', { class: 'wa', href: `https://wa.me/${phone}?text=${encodeURIComponent(`Hello ${r.name}, this is Vendora Africa about your message ${r.reference}.`)}`, target: '_blank', rel: 'noopener', text: '💬 WhatsApp' }) : null,
-          r.email ? el('a', { href: `mailto:${r.email}?subject=${encodeURIComponent(`Vendora Africa – ${r.reference}`)}`, text: '✉️ Email' }) : null,
+          phone ? el('a', { href: `tel:+${phone}`, text: 'Call' }) : null,
+          phone ? el('a', { class: 'wa', href: `https://wa.me/${phone}?text=${encodeURIComponent(`Hello ${r.name}, this is Vendora Africa about your message ${r.reference}.`)}`, target: '_blank', rel: 'noopener', text: 'WhatsApp' }) : null,
+          r.email ? el('a', { href: `mailto:${r.email}?subject=${encodeURIComponent(`Vendora Africa – ${r.reference}`)}`, text: 'Email' }) : null,
           el('button', {
             class: status === 'open' ? 'success' : 'outline',
             text: status === 'open' ? 'Mark resolved' : 'Reopen',
@@ -408,7 +443,7 @@
         try {
           const s = await api('/settings/pricing', { method: 'PUT', body: JSON.stringify({ prices, freeDays: Number(freeDays.value), graceDays: Number(graceDays.value) }) });
           form.replaceWith(pricingCard(s.pricing));
-          toast('Prices saved ✓');
+          toast('Prices saved');
         } catch (ex) {
           err.textContent = ex.message;
           btn.disabled = false; btn.textContent = 'Save prices';
