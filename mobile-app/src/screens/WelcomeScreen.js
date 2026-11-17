@@ -27,6 +27,7 @@ const SLIDES = [
     headline: ['Discover trusted businesses in ', 'every corner of Africa', ''],
     body: 'Find local sellers near you, from market stalls to retail stores.',
     points: ['Local sellers', 'Pay with MoMo'],
+    link: { title: 'Browse by category', sub: 'Phones, fashion, food and more', cta: 'Explore', go: 'Browse' },
   },
   {
     key: 'pay',
@@ -39,6 +40,7 @@ const SLIDES = [
     body: 'Call, message or get directions in one tap, then pay securely with:',
     networks: true,
     points: ['Mobile Money', 'Direct contact'],
+    link: { title: 'How paying works', sub: 'Pay the seller directly. No card needed', cta: 'Learn more', go: 'Help' },
   },
   {
     key: 'grow',
@@ -50,6 +52,7 @@ const SLIDES = [
     headline: ['List your business ', 'for free', ' and start selling in minutes'],
     body: 'Reach new customers online, manage your stock and track your sales.',
     points: ['Free to register', 'Sales insights'],
+    link: { title: 'Own a business?', sub: 'List it free in a few minutes', cta: 'List now', go: 'Register' },
   },
 ];
 
@@ -95,6 +98,11 @@ const WelcomeScreen = ({ navigation }) => {
   };
 
   const enterApp = (screen = 'Home') => navigation.replace('Main', { screen });
+  // Bottom box: tabs open inside the app; Help opens on top of the app so Back returns to Home
+  const openLink = (go) =>
+    go === 'Help'
+      ? navigation.reset({ index: 1, routes: [{ name: 'Main' }, { name: 'Help' }] })
+      : enterApp(go);
 
   // Last slide: cover the screen with the brand colour and logo, then fade into the app
   const finish = () => {
@@ -242,7 +250,6 @@ const WelcomeScreen = ({ navigation }) => {
           {/* Label row: section name on the left, slide count on the right */}
           <Animated.View style={[styles.labelRow, rise(6)]}>
             <View style={styles.eyebrow}>
-              <View style={styles.eyebrowRule} />
               <Text style={[styles.eyebrowText, headFont('PlusJakartaSans_600SemiBold')]}>{slide.eyebrow}</Text>
             </View>
             <Text style={styles.counter}>
@@ -305,17 +312,17 @@ const WelcomeScreen = ({ navigation }) => {
         ) : null}
         {/* Business owners can go straight to registering */}
         <Touchable
-          onPress={() => enterApp('Register')}
+          onPress={() => openLink(slide.link.go)}
           accessibilityRole="button"
-          accessibilityLabel="Own a business? List it free"
+          accessibilityLabel={`${slide.link.title} ${slide.link.cta}`}
           style={[styles.ownerRow, compact && { marginTop: spacing.md }, !isLast && { marginTop: (compact ? spacing.md : spacing.lg) + extraSpace }]}
         >
           <View style={styles.ownerAccent} />
           <View style={{ flex: 1 }}>
-            <Text style={styles.ownerTitle}>Own a business?</Text>
-            <Text style={[type.caption, { color: colors.textMuted, marginTop: 2 }]}>List it free in a few minutes</Text>
+            <Text style={styles.ownerTitle}>{slide.link.title}</Text>
+            <Text style={[type.caption, { color: colors.textMuted, marginTop: 2 }]}>{slide.link.sub}</Text>
           </View>
-          <Text style={styles.ownerLink}>List now</Text>
+          <Text style={styles.ownerLink}>{slide.link.cta}</Text>
           <Ionicons name="chevron-forward" size={16} color={colors.primary} />
         </Touchable>
       </View>
@@ -381,16 +388,13 @@ const styles = StyleSheet.create({
   labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
   counter: { ...type.caption, color: colors.placeholder, letterSpacing: 1, fontVariant: ['tabular-nums'] },
   titleCompact: { fontSize: 18, lineHeight: 25 },
-  // Section tag: a soft blue pill with a small accent dot
+  // Section tag: solid navy label with white spaced capitals
   eyebrow: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    paddingHorizontal: spacing.lg, paddingVertical: 9,
-    borderRadius: radius.pill,
-    backgroundColor: colors.primarySoft,
-    borderWidth: 1, borderColor: colors.primaryMuted,
+    paddingHorizontal: spacing.md, paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: colors.primary,
   },
-  eyebrowRule: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.accent },
-  eyebrowText: { ...type.caption, fontSize: 13, lineHeight: 16, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: colors.primary },
+  eyebrowText: { ...type.caption, fontSize: 11, lineHeight: 14, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase', color: colors.onPrimary },
   // Light, large headline; the second line is picked out in the brand blue
   // Headlines: Plus Jakarta Sans, tight tracking; second line in brand navy
   title: { ...type.body, fontSize: 20, lineHeight: 28, fontWeight: '500', letterSpacing: -0.4, color: colors.primaryDeep, maxWidth: 340 },
