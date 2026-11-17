@@ -24,7 +24,7 @@ const SLIDES = [
     focus: { x: 0.6, y: 0.55 },
     caption: 'Fruit market, Dar es Salaam, Tanzania',
     eyebrow: 'Discover',
-    title: 'Every business.', highlight: 'Every corner of Africa.',
+    headline: ['Discover trusted businesses in ', 'every corner of Africa', ''],
     body: 'Find local sellers near you, from market stalls to retail stores.',
     points: ['Local sellers', 'Pay with MoMo'],
   },
@@ -35,7 +35,7 @@ const SLIDES = [
     focus: { x: 0.56, y: 0.4 },
     caption: 'Pay the way you already do',
     eyebrow: 'Buy with confidence',
-    title: 'Contact sellers and', highlight: 'pay with Mobile Money',
+    headline: ['Connect with sellers and pay securely with ', 'Mobile Money', ''],
     body: 'Call, message or get directions in one tap, then pay securely with:',
     networks: true,
     points: ['Mobile Money', 'Direct contact'],
@@ -47,7 +47,7 @@ const SLIDES = [
     focus: { x: 0.5, y: 0.4 },
     caption: 'Built for African entrepreneurs',
     eyebrow: 'Grow your business',
-    title: 'List your business', highlight: 'free in minutes',
+    headline: ['List your business ', 'for free', ' and start selling in minutes'],
     body: 'Reach new customers online, manage your stock and track your sales.',
     points: ['Free to register', 'Sales insights'],
   },
@@ -245,8 +245,12 @@ const WelcomeScreen = ({ navigation }) => {
           </Animated.View>
 
           <Animated.View style={rise(14)}>
-            <Text style={[styles.title, headFont('PlusJakartaSans_500Medium'), compact && styles.titleCompact]}>{slide.title}</Text>
-            <Text style={[styles.title, styles.highlight, headFont('PlusJakartaSans_600SemiBold'), compact && styles.titleCompact]}>{slide.highlight}</Text>
+            {/* A single sentence that wraps naturally, with the key phrase picked out in navy */}
+            <Text style={[styles.title, headFont('PlusJakartaSans_500Medium'), compact && styles.titleCompact]} accessibilityRole="header">
+              {slide.headline[0]}
+              <Text style={[styles.highlight, headFont('PlusJakartaSans_600SemiBold')]}>{slide.headline[1]}</Text>
+              {slide.headline[2]}
+            </Text>
           </Animated.View>
 
           <Animated.View style={rise(22)}>
@@ -368,13 +372,13 @@ const styles = StyleSheet.create({
   handle: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: colors.border, marginBottom: spacing.xl },
   labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
   counter: { ...type.caption, color: colors.placeholder, letterSpacing: 1, fontVariant: ['tabular-nums'] },
-  titleCompact: { fontSize: 21, lineHeight: 27 },
+  titleCompact: { fontSize: 20, lineHeight: 27 },
   eyebrow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   eyebrowRule: { width: 20, height: 2, borderRadius: 1, backgroundColor: colors.accent },
   eyebrowText: { ...type.caption, fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase', color: colors.primary },
   // Light, large headline; the second line is picked out in the brand blue
   // Headlines: Plus Jakarta Sans, tight tracking; second line in brand navy
-  title: { ...type.body, fontSize: 24, lineHeight: 31, fontWeight: '500', letterSpacing: -0.6, color: colors.text },
+  title: { ...type.body, fontSize: 23, lineHeight: 31, fontWeight: '500', letterSpacing: -0.5, color: colors.text, maxWidth: 340 },
   highlight: { color: colors.primary, fontWeight: '600' },
   network: { paddingHorizontal: spacing.md, paddingVertical: 7, borderRadius: radius.sm },
   networkText: { fontSize: 12, lineHeight: 15, fontWeight: '700', letterSpacing: 0.2 },
